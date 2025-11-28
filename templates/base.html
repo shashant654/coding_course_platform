@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Coding Course Platform{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Custom CSS -->
+    <style>
+      :root {
+        --primary-color: #5624d0;
+        --secondary-color: #2d2f31;
+        --text-color: #1c1d1f;
+        --gray-text: #6a6f73;
+        --border-color: #d1d7dc;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+      }
+
+      .navbar {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        padding: 1rem 0;
+      }
+
+      .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .btn-primary:hover {
+        background-color: #3b1c8c;
+        border-color: #3b1c8c;
+      }
+
+      .course-card {
+        transition: transform 0.3s ease;
+        border: 1px solid var(--border-color);
+      }
+
+      .course-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .footer {
+        background-color: var(--secondary-color);
+        color: #fff;
+        padding: 3rem 0;
+        margin-top: 4rem;
+      }
+
+      .star-rating {
+        color: #f4c150;
+      }
+
+      .alert {
+        border-radius: 0;
+        border-left: 4px solid;
+      }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="{% url 'home' %}">
+          <i class="fas fa-graduation-cap text-primary"></i> CodeLearn
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <!-- Left Menu -->
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'courses:course_list' %}"
+                >Courses</a
+              >
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'users:my_courses' %}"
+                >My Learning</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+
+          <!-- Search Bar -->
+          <form
+            class="d-flex me-3"
+            action="{% url 'courses:search' %}"
+            method="get"
+          >
+            <div class="input-group">
+              <input
+                class="form-control"
+                type="search"
+                placeholder="Search courses..."
+                name="q"
+              />
+              <button class="btn btn-outline-secondary" type="submit">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </form>
+
+          <!-- Right Menu -->
+          <ul class="navbar-nav">
+            {% if user.is_authenticated %} {% if user.is_instructor %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'users:instructor_dashboard' %}">
+                <i class="fas fa-chalkboard-teacher"></i> Instructor
+              </a>
+            </li>
+            {% endif %}
+
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'enrollment:wishlist' %}">
+                <i class="fas fa-heart"></i>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link position-relative"
+                href="{% url 'payments:cart' %}"
+              >
+                <i class="fas fa-shopping-cart"></i>
+                <span
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  id="cart-count"
+                >
+                  0
+                </span>
+              </a>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle"
+                href="#"
+                id="userDropdown"
+                data-bs-toggle="dropdown"
+              >
+                {% if user.profile_picture %}
+                <img
+                  src="{{ user.profile_picture.url }}"
+                  alt="{{ user.username }}"
+                  class="rounded-circle"
+                  width="32"
+                  height="32"
+                />
+                {% else %}
+                <i class="fas fa-user-circle fa-lg"></i>
+                {% endif %}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                  <a class="dropdown-item" href="{% url 'users:dashboard' %}"
+                    >Dashboard</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'users:profile' %}"
+                    >Profile</a
+                  >
+                </li>
+                <li>
+                  <a
+                    class="dropdown-item"
+                    href="{% url 'payments:order_history' %}"
+                    >Orders</a
+                  >
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'users:logout' %}"
+                    >Logout</a
+                  >
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'users:login' %}">Log In</a>
+            </li>
+            <li class="nav-item">
+              <a
+                class="btn btn-primary text-white ms-2"
+                href="{% url 'users:register' %}"
+                >Sign Up</a
+              >
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="container mt-3">
+      {% for message in messages %}
+      <div
+        class="alert alert-{{ message.tags }} alert-dismissible fade show"
+        role="alert"
+      >
+        {{ message }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+        ></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>{% block content %}{% endblock %}</main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 mb-4">
+            <h5 class="text-white mb-3">CodeLearn</h5>
+            <p class="text-light">
+              Learn coding skills from industry experts. Build your career with
+              our comprehensive courses.
+            </p>
+          </div>
+
+          <div class="col-md-2 mb-4">
+            <h6 class="text-white mb-3">Quick Links</h6>
+            <ul class="list-unstyled">
+              <li>
+                <a
+                  href="{% url 'courses:course_list' %}"
+                  class="text-light text-decoration-none"
+                  >Courses</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-light text-decoration-none">About Us</a>
+              </li>
+              <li>
+                <a href="#" class="text-light text-decoration-none">Contact</a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-md-2 mb-4">
+            <h6 class="text-white mb-3">Support</h6>
+            <ul class="list-unstyled">
+              <li>
+                <a href="#" class="text-light text-decoration-none"
+                  >Help Center</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-light text-decoration-none"
+                  >Terms of Service</a
+                >
+              </li>
+              <li>
+                <a href="#" class="text-light text-decoration-none"
+                  >Privacy Policy</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-md-4 mb-4">
+            <h6 class="text-white mb-3">Connect With Us</h6>
+            <div class="d-flex gap-3">
+              <a href="#" class="text-light"
+                ><i class="fab fa-facebook fa-2x"></i
+              ></a>
+              <a href="#" class="text-light"
+                ><i class="fab fa-twitter fa-2x"></i
+              ></a>
+              <a href="#" class="text-light"
+                ><i class="fab fa-linkedin fa-2x"></i
+              ></a>
+              <a href="#" class="text-light"
+                ><i class="fab fa-youtube fa-2x"></i
+              ></a>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-light" />
+
+        <div class="row">
+          <div class="col-md-12 text-center">
+            <p class="text-light mb-0">
+              &copy; 2025 CodeLearn. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery (optional, for AJAX) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>

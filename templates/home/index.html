@@ -1,0 +1,213 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Home - CodeLearn{%
+endblock %} {% block content %}
+<!-- Hero Section -->
+<section class="bg-light py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <h1 class="display-4 fw-bold mb-3">Learn Coding Skills Online</h1>
+        <p class="lead text-muted mb-4">
+          Master programming, web development, data science, and more with
+          expert-led courses. Start your journey today!
+        </p>
+        <div class="d-flex gap-3">
+          <a
+            href="{% url 'courses:course_list' %}"
+            class="btn btn-primary btn-lg"
+          >
+            Browse Courses
+          </a>
+          {% if not user.is_authenticated %}
+          <a
+            href="{% url 'users:register' %}"
+            class="btn btn-outline-primary btn-lg"
+          >
+            Sign Up Free
+          </a>
+          {% endif %}
+        </div>
+
+        <div class="mt-4">
+          <div class="d-flex gap-4">
+            <div>
+              <h4 class="fw-bold text-primary mb-0">10K+</h4>
+              <p class="text-muted small">Students</p>
+            </div>
+            <div>
+              <h4 class="fw-bold text-primary mb-0">500+</h4>
+              <p class="text-muted small">Courses</p>
+            </div>
+            <div>
+              <h4 class="fw-bold text-primary mb-0">50+</h4>
+              <p class="text-muted small">Instructors</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <img
+          src="https://via.placeholder.com/600x400"
+          alt="Learning"
+          class="img-fluid rounded"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5">
+  <div class="container">
+    <h2 class="text-center mb-5">Explore Top Categories</h2>
+
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="card text-center h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-code fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Web Development</h5>
+            <p class="card-text text-muted">HTML, CSS, JavaScript, React</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card text-center h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-python fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Python Programming</h5>
+            <p class="card-text text-muted">Django, Flask, Data Science</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card text-center h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Mobile Development</h5>
+            <p class="card-text text-muted">React Native, Flutter</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-3">
+        <div class="card text-center h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <i class="fas fa-database fa-3x text-primary mb-3"></i>
+            <h5 class="card-title">Data Science</h5>
+            <p class="card-text text-muted">ML, AI, Data Analysis</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Courses -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Featured Courses</h2>
+      <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary"
+        >View All</a
+      >
+    </div>
+
+    <div class="row g-4">
+      <!-- Sample Course Card (This will be dynamically generated from database) -->
+      <div class="col-md-3">
+        <div class="card course-card h-100">
+          <img
+            src="https://via.placeholder.com/300x200"
+            class="card-img-top"
+            alt="Course"
+          />
+          <div class="card-body">
+            <span class="badge bg-warning text-dark mb-2">Bestseller</span>
+            <h6 class="card-title">Complete Python Bootcamp</h6>
+            <p class="text-muted small mb-2">John Doe</p>
+            <div class="d-flex align-items-center mb-2">
+              <span class="star-rating me-1">4.8 ★★★★★</span>
+              <span class="text-muted small">(1,234)</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="fw-bold text-primary">$49.99</span>
+              <span class="text-decoration-line-through text-muted"
+                >$99.99</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add more course cards dynamically -->
+    </div>
+  </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-5">
+  <div class="container">
+    <h2 class="text-center mb-5">Why Choose CodeLearn?</h2>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="text-center">
+          <div
+            class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3"
+          >
+            <i class="fas fa-infinity fa-2x text-primary"></i>
+          </div>
+          <h5>Lifetime Access</h5>
+          <p class="text-muted">
+            Access your courses anytime, anywhere with no time limits
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-center">
+          <div
+            class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3"
+          >
+            <i class="fas fa-certificate fa-2x text-primary"></i>
+          </div>
+          <h5>Certificates</h5>
+          <p class="text-muted">
+            Earn certificates of completion to showcase your skills
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="text-center">
+          <div
+            class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3"
+          >
+            <i class="fas fa-users fa-2x text-primary"></i>
+          </div>
+          <h5>Expert Instructors</h5>
+          <p class="text-muted">
+            Learn from industry professionals with real-world experience
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-primary text-white py-5">
+  <div class="container text-center">
+    <h2 class="mb-3">Ready to Start Learning?</h2>
+    <p class="lead mb-4">
+      Join thousands of students and transform your career today
+    </p>
+    <a href="{% url 'users:register' %}" class="btn btn-light btn-lg"
+      >Get Started Now</a
+    >
+  </div>
+</section>
+{% endblock %}
