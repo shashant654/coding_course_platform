@@ -1,0 +1,305 @@
+{% extends 'base.html' %} {% block title %}{{ course.title }} - CodeLearn{%
+endblock %} {% block content %}
+<!-- Course Header -->
+<section class="bg-dark text-white py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb bg-transparent text-white-50">
+            <li class="breadcrumb-item">
+              <a href="{% url 'home' %}" class="text-white-50">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="{% url 'courses:course_list' %}" class="text-white-50"
+                >Courses</a
+              >
+            </li>
+            <li class="breadcrumb-item active text-white">
+              {{ course.title }}
+            </li>
+          </ol>
+        </nav>
+
+        <h1 class="display-5 fw-bold mb-3">{{ course.title }}</h1>
+        <p class="lead mb-3">{{ course.short_description }}</p>
+
+        <div class="d-flex align-items-center mb-3">
+          <span class="badge bg-warning text-dark me-2"
+            >{{ course.level|title }}</span
+          >
+          <span class="star-rating me-2"
+            >{{ course.average_rating|floatformat:1 }} ★★★★★</span
+          >
+          <span class="me-3">({{ course.reviews.count }} reviews)</span>
+          <span>{{ course.total_enrollments }} students</span>
+        </div>
+
+        <p class="mb-2">
+          <i class="fas fa-user"></i> Created by
+          <strong>{{ course.instructor.get_full_name }}</strong>
+        </p>
+
+        <p class="mb-2">
+          <i class="fas fa-clock"></i> Last updated {{ course.updated_at|date:"F
+          Y" }}
+        </p>
+
+        <p class="mb-0"><i class="fas fa-globe"></i> {{ course.language }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<div class="container py-5">
+  <div class="row">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+      <!-- What You'll Learn -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">What you'll learn</h3>
+          <div class="row">
+            {% for item in course.what_you_will_learn|linebreaks %}
+            <div class="col-md-6 mb-2">
+              <i class="fas fa-check text-success me-2"></i>{{ item }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Content -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">Course Content</h3>
+          <p class="text-muted mb-4">
+            {{ sections.count }} sections • {{ course.total_lectures }} lectures
+            • {{ course.duration_hours }}h total length
+          </p>
+
+          <div class="accordion" id="courseAccordion">
+            {% for section in sections %}
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button
+                  class="accordion-button {% if not forloop.first %}collapsed{% endif %}"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#section{{ section.id }}"
+                >
+                  <strong
+                    >Section {{ forloop.counter }}: {{ section.title }}</strong
+                  >
+                  <span class="ms-auto me-3 text-muted small">
+                    {{ section.lectures.count }} lectures
+                  </span>
+                </button>
+              </h2>
+              <div
+                id="section{{ section.id }}"
+                class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
+                data-bs-parent="#courseAccordion"
+              >
+                <div class="accordion-body">
+                  {% for lecture in section.lectures.all %}
+                  <div
+                    class="d-flex justify-content-between align-items-center py-2"
+                  >
+                    <div>
+                      <i class="fas fa-play-circle text-primary me-2"></i>
+                      {{ lecture.title }} {% if lecture.is_preview %}
+                      <span class="badge bg-info text-white ms-2">Preview</span>
+                      {% endif %}
+                    </div>
+                    <span class="text-muted small"
+                      >{{ lecture.duration_minutes }} min</span
+                    >
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Requirements -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">Requirements</h3>
+          {{ course.requirements|linebreaks }}
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">Description</h3>
+          {{ course.detailed_description|linebreaks }}
+        </div>
+      </div>
+
+      <!-- Instructor -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">Instructor</h3>
+          <div class="d-flex align-items-start">
+            <img
+              src="{{ course.instructor.profile_picture.url }}"
+              alt="{{ course.instructor.get_full_name }}"
+              class="rounded-circle me-3"
+              width="80"
+              height="80"
+              onerror="this.src='https://via.placeholder.com/80'"
+            />
+            <div>
+              <h5>{{ course.instructor.get_full_name }}</h5>
+              <p class="text-muted mb-2">
+                {{ course.instructor.profile.profession }}
+              </p>
+              <p>{{ course.instructor.profile.bio }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h3 class="mb-4">Student Reviews</h3>
+
+          {% for review in reviews %}
+          <div class="mb-4 pb-4 border-bottom">
+            <div class="d-flex align-items-start">
+              <img
+                src="{{ review.user.profile_picture.url }}"
+                alt="{{ review.user.username }}"
+                class="rounded-circle me-3"
+                width="50"
+                height="50"
+                onerror="this.src='https://via.placeholder.com/50'"
+              />
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{ review.user.get_full_name }}</h6>
+                <div class="star-rating mb-2">{{ review.rating }} ★★★★★</div>
+                <p class="text-muted small mb-2">
+                  {{ review.created_at|date:"F d, Y" }}
+                </p>
+                <p>{{ review.comment }}</p>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted">
+            No reviews yet. Be the first to review this course!
+          </p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar - Purchase Card -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top: 20px">
+        <img
+          src="{{ course.thumbnail_image.url }}"
+          class="card-img-top"
+          alt="{{ course.title }}"
+        />
+        <div class="card-body">
+          <!-- Price -->
+          <div class="mb-4">
+            {% if course.price == 0 %}
+            <h2 class="text-success mb-0">FREE</h2>
+            {% else %}
+            <h2 class="mb-0">
+              ${{ course.get_actual_price }} {% if course.has_discount %}
+              <small class="text-muted text-decoration-line-through"
+                >${{ course.price }}</small
+              >
+              {% endif %}
+            </h2>
+            {% if course.has_discount %}
+            <span class="badge bg-danger"
+              >{{ course.discount_price|floatformat:0 }}% OFF</span
+            >
+            {% endif %} {% endif %}
+          </div>
+
+          <!-- Action Buttons -->
+          {% if is_enrolled %}
+          <a
+            href="{% url 'courses:course_player' course.slug %}"
+            class="btn btn-success w-100 mb-2"
+          >
+            <i class="fas fa-play"></i> Go to Course
+          </a>
+          {% else %} {% if course.price == 0 %}
+          <a
+            href="{% url 'enrollment:enroll_free' course.id %}"
+            class="btn btn-primary w-100 mb-2"
+          >
+            <i class="fas fa-check"></i> Enroll Now
+          </a>
+          {% else %}
+          <a
+            href="{% url 'payments:buy_now' course.id %}"
+            class="btn btn-primary w-100 mb-2"
+          >
+            <i class="fas fa-shopping-cart"></i> Buy Now
+          </a>
+          <a
+            href="{% url 'payments:add_to_cart' course.id %}"
+            class="btn btn-outline-primary w-100 mb-2"
+          >
+            <i class="fas fa-cart-plus"></i> Add to Cart
+          </a>
+          {% endif %} {% endif %} {% if not is_enrolled %}
+          <a
+            href="{% url 'enrollment:add_to_wishlist' course.id %}"
+            class="btn btn-outline-secondary w-100 mb-3"
+          >
+            <i class="fas fa-heart"></i> Add to Wishlist
+          </a>
+          {% endif %}
+
+          <!-- Course Info -->
+          <div class="mb-3">
+            <h6 class="fw-bold mb-3">This course includes:</h6>
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <i class="fas fa-video text-primary me-2"></i>
+                {{ course.duration_hours }} hours video
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-file text-primary me-2"></i>
+                {{ course.total_lectures }} lectures
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-download text-primary me-2"></i>
+                Downloadable resources
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-infinity text-primary me-2"></i>
+                Lifetime access
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-mobile-alt text-primary me-2"></i>
+                Access on mobile and TV
+              </li>
+              <li class="mb-2">
+                <i class="fas fa-certificate text-primary me-2"></i>
+                Certificate of completion
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
