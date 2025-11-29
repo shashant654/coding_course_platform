@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}UPI Payment - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-qrcode"></i> UPI Payment
+          </h4>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <!-- QR Code Section -->
+            <div class="col-md-6 text-center border-end">
+              <h5 class="mb-4">Scan QR Code</h5>
+              
+              {% if payment_config.upi_qr_code %}
+              <img
+                src="{{ payment_config.upi_qr_code.url }}"
+                alt="UPI QR Code"
+                class="img-fluid mb-3"
+                style="max-width: 300px; border: 2px solid #ddd; padding: 10px"
+              />
+              {% else %}
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                QR Code not configured. Please contact admin.
+              </div>
+              {% endif %}
+              
+              {% if payment_config.upi_id %}
+              <div class="alert alert-info">
+                <strong>UPI ID:</strong><br />
+                <code>{{ payment_config.upi_id }}</code>
+                <button
+                  class="btn btn-sm btn-outline-primary ms-2"
+                  onclick="copyUPIID()"
+                >
+                  <i class="fas fa-copy"></i> Copy
+                </button>
+              </div>
+              {% endif %}
+              
+              <div class="alert alert-success">
+                <strong>Amount to Pay:</strong><br />
+                <h3 class="mb-0">₹{{ total }}</h3>
+              </div>
+            </div>
+
+            <!-- Payment Form Section -->
+            <div class="col-md-6">
+              <h5 class="mb-4">Submit Payment Details</h5>
+              
+              <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="alert alert-info">
+                  <i class="fas fa-info-circle"></i>
+                  <small>
+                    After completing the payment, please submit the transaction
+                    details below for verification.
+                  </small>
+                </div>
+
+                <div class="mb-3">
+                  <label for="transaction_ref" class="form-label">
+                    <strong>Transaction Reference / UTR Number *</strong>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="transaction_ref"
+                    name="transaction_ref"
+                    required
+                    placeholder="Enter 12-digit UTR number"
+                  />
+                  <small class="text-muted">
+                    You can find this in your payment confirmation message
+                  </small>
+                </div>
+
+                <div class="mb-3">
+                  <label for="payment_screenshot" class="form-label">
+                    <strong>Payment Screenshot (Optional)</strong>
+                  </label>
+                  <input
+                    type="file"
+                    class="form-control"
+                    id="payment_screenshot"
+                    name="payment_screenshot"
+                    accept="image/*"
+                  />
+                  <small class="text-muted">
+                    Upload screenshot of payment confirmation for faster
+                    verification
+                  </small>
+                </div>
+
+                <div class="alert alert-warning">
+                  <i class="fas fa-clock"></i>
+                  <small>
+                    <strong>Note:</strong> Your payment will be verified within
+                    24 hours. You will receive email notification once approved.
+                  </small>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">
+                  <i class="fas fa-check"></i> Submit Payment Details
+                </button>
+              </form>
+
+              <div class="mt-3 text-center">
+                <a href="{% url 'payments:checkout' %}" class="btn btn-link">
+                  <i class="fas fa-arrow-left"></i> Back to Checkout
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Summary -->
+          <div class="mt-4 pt-4 border-top">
+            <h5 class="mb-3">Order Summary</h5>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Course</th>
+                    <th class="text-end">Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in cart_items %}
+                  <tr>
+                    <td>{{ item.course.title }}</td>
+                    <td class="text-end">${{ item.course.get_actual_price }}</td>
+                  </tr>
+                  {% endfor %}
+                  <tr>
+                    <td><strong>Subtotal</strong></td>
+                    <td class="text-end"><strong>${{ subtotal }}</strong></td>
+                  </tr>
+                  {% if discount > 0 %}
+                  <tr class="text-success">
+                    <td><strong>Discount</strong></td>
+                    <td class="text-end"><strong>-${{ discount }}</strong></td>
+                  </tr>
+                  {% endif %}
+                  <tr class="table-primary">
+                    <td><strong>Total</strong></td>
+                    <td class="text-end">
+                      <strong class="fs-5">${{ total }}</strong>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function copyUPIID() {
+    const upiId = "{{ payment_config.upi_id }}";
+    navigator.clipboard.writeText(upiId).then(() => {
+      alert("UPI ID copied to clipboard!");
+    });
+  }
+</script>
+{% endblock %}

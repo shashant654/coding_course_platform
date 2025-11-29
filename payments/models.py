@@ -47,6 +47,8 @@ class Order(models.Model):
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=50, blank=True)
     transaction_id = models.CharField(max_length=100, blank=True)
+    razorpay_payment_id = models.CharField(max_length=200, blank=True)
+    razorpay_order_id = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -117,3 +119,56 @@ class Announcement(models.Model):
     class Meta:
         db_table = 'announcements'
         ordering = ['-created_at']
+
+    
+
+
+class PaymentConfig(models.Model):
+    """Store payment configuration like UPI QR code"""
+    upi_qr_code = models.ImageField(upload_to='payment/qr_codes/', blank=True, null=True)
+    upi_id = models.CharField(max_length=100, blank=True)
+    razorpay_key_id = models.CharField(max_length=100, blank=True)
+    razorpay_key_secret = models.CharField(max_length=100, blank=True)
+    is_razorpay_test_mode = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'payment_config'
+    
+    def __str__(self):
+        return "Payment Configuration"
+    
+    @classmethod
+    def get_config(cls):
+        """Get or create payment config"""
+        config, created = cls.objects.get_or_create(pk=1)
+        return config
+
+
+class PaymentTransaction(models.Model):
+    """Track all payment transactions"""
+    TRANSACTION_STATUS = [
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('failed', 'Failed'),
+    ]
+    
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
+    transaction_id = models.CharField(max_length=200, unique=True)
+    payment_method = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=TRANSACTION_STATUS, default='pending')
+    razorpay_order_id = models.CharField(max_length=200, blank=True)
+    razorpay_payment_id = models.CharField(max_length=200, blank=True)
+    razorpay_signature = models.CharField(max_length=200, blank=True)
+    upi_transaction_ref = models.CharField(max_length=200, blank=True)
+    payment_screenshot = models.ImageField(upload_to='payment/screenshots/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'payment_transactions'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.transaction_id} - {self.status}"

@@ -4,10 +4,17 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.db import transaction
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from decimal import Decimal
+import json
 from .models import Cart, CartItem, Order, OrderItem, Coupon
 from courses.models import Course
 from enrollment.models import Enrollment
+
+try:
+    import razorpay
+except ImportError:
+    razorpay = None
 
 
 @login_required
@@ -293,3 +300,270 @@ def buy_now(request, course_id):
     CartItem.objects.create(cart=cart, course=course)
     
     return redirect('payments:checkout')
+
+
+@login_required
+@require_POST
+def create_razorpay_order(request):
+    """Create a Razorpay order"""
+    if not razorpay:
+        return JsonResponse({'error': 'Razorpay is not configured'}, status=400)
+    
+    try:
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.items.select_related('course')
+        
+        if not cart_items.exists():
+            return JsonResponse({'error': 'Cart is empty'}, status=400)
+        
+        # Calculate total
+        subtotal = cart.get_total()
+        discount = Decimal('0.00')
+        
+        coupon_code = request.session.get('coupon_code')
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code)
+                if coupon.is_valid():
+                    if coupon.discount_type == 'percentage':
+                        discount = subtotal * (coupon.discount_value / 100)
+                    else:
+                        discount = coupon.discount_value
+            except Coupon.DoesNotExist:
+                pass
+        
+        final_amount = subtotal - discount
+        
+        # Initialize Razorpay client
+        client = razorpay.Client(auth=(
+            'YOUR_RAZORPAY_KEY_ID',  # Replace with your key
+            'YOUR_RAZORPAY_KEY_SECRET'  # Replace with your secret
+        ))
+        
+        # Create order
+        razorpay_order = client.order.create(data={
+            'amount': int(final_amount * 100),  # Amount in paise
+            'currency': 'INR',
+            'notes': {
+                'user_id': request.user.id,
+                'user_email': request.user.email
+            }
+        })
+        
+        return JsonResponse({
+            'order_id': razorpay_order['id'],
+            'amount': final_amount,
+            'currency': 'INR'
+        })
+    
+    except Cart.DoesNotExist:
+        return JsonResponse({'error': 'Cart not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def verify_razorpay_payment(request):
+    """Verify Razorpay payment"""
+    if not razorpay:
+        return JsonResponse({'error': 'Razorpay is not configured'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        
+        # Initialize Razorpay client
+        client = razorpay.Client(auth=(
+            'YOUR_RAZORPAY_KEY_ID',  # Replace with your key
+            'YOUR_RAZORPAY_KEY_SECRET'  # Replace with your secret
+        ))
+        
+        # Verify signature
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': data['razorpay_order_id'],
+            'razorpay_payment_id': data['razorpay_payment_id'],
+            'razorpay_signature': data['razorpay_signature']
+        })
+        
+        # Payment verified - create order and enrollments
+        cart = Cart.objects.get(user=request.user)
+        cart_items = cart.items.select_related('course')
+        
+        subtotal = cart.get_total()
+        discount = Decimal('0.00')
+        coupon = None
+        
+        coupon_code = request.session.get('coupon_code')
+        if coupon_code:
+            try:
+                coupon = Coupon.objects.get(code=coupon_code)
+                if coupon.is_valid():
+                    if coupon.discount_type == 'percentage':
+                        discount = subtotal * (coupon.discount_value / 100)
+                    else:
+                        discount = coupon.discount_value
+            except Coupon.DoesNotExist:
+                pass
+        
+        final_amount = subtotal - discount
+        
+        # Create order
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=request.user,
+                total_amount=subtotal,
+                discount_amount=discount,
+                final_amount=final_amount,
+                payment_method='razorpay',
+                payment_status='completed',
+                razorpay_payment_id=data['razorpay_payment_id'],
+                razorpay_order_id=data['razorpay_order_id']
+            )
+            
+            # Create order items and enrollments
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    course=item.course,
+                    price=item.course.get_actual_price()
+                )
+                
+                # Create enrollment
+                Enrollment.objects.create(
+                    user=request.user,
+                    course=item.course
+                )
+                
+                # Update course enrollment count
+                item.course.total_enrollments += 1
+                item.course.save()
+            
+            # Update coupon usage
+            if coupon:
+                coupon.used_count += 1
+                coupon.save()
+                if 'coupon_code' in request.session:
+                    del request.session['coupon_code']
+            
+            # Clear cart
+            cart.items.all().delete()
+        
+        return JsonResponse({
+            'success': True,
+            'order_number': order.order_number,
+            'message': 'Payment verified successfully'
+        })
+    
+    except razorpay.BadRequestError:
+        return JsonResponse({'error': 'Invalid payment details'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+def upi_payment(request):
+    """UPI Payment Page"""
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = cart.items.select_related('course')
+    
+    if not cart_items.exists():
+        messages.warning(request, 'Your cart is empty.')
+        return redirect('payments:cart')
+    
+    # Calculate totals
+    subtotal = cart.get_total()
+    discount = Decimal('0.00')
+    coupon = None
+    
+    coupon_code = request.session.get('coupon_code')
+    if coupon_code:
+        try:
+            coupon = Coupon.objects.get(code=coupon_code)
+            if coupon.is_valid():
+                if coupon.discount_type == 'percentage':
+                    discount = subtotal * (coupon.discount_value / 100)
+                else:
+                    discount = coupon.discount_value
+        except Coupon.DoesNotExist:
+            pass
+    
+    total = subtotal - discount
+    
+    # Handle form submission (POST request)
+    if request.method == 'POST':
+        transaction_ref = request.POST.get('transaction_ref', '').strip()
+        payment_screenshot = request.FILES.get('payment_screenshot')
+        
+        if not transaction_ref:
+            messages.error(request, 'Please enter the transaction reference/UTR number.')
+            # Get payment configuration for re-rendering
+            from .models import PaymentConfig
+            payment_config = PaymentConfig.get_config()
+            
+            context = {
+                'cart_items': cart_items,
+                'subtotal': subtotal,
+                'discount': discount,
+                'total': total,
+                'coupon': coupon,
+                'payment_config': payment_config,
+            }
+            return render(request, 'payments/upi_payment.html', context)
+        
+        # Create order with pending payment status
+        with transaction.atomic():
+            order = Order.objects.create(
+                user=request.user,
+                total_amount=subtotal,
+                discount_amount=discount,
+                final_amount=total,
+                payment_method='upi',
+                payment_status='pending'
+            )
+            
+            # Create payment transaction record
+            from .models import PaymentTransaction
+            payment_txn = PaymentTransaction.objects.create(
+                order=order,
+                transaction_id=transaction_ref,
+                payment_method='upi',
+                amount=total,
+                status='pending',
+                upi_transaction_ref=transaction_ref,
+                payment_screenshot=payment_screenshot
+            )
+            
+            # Create order items
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    course=item.course,
+                    price=item.course.get_actual_price()
+                )
+            
+            # Update coupon usage if applied
+            if coupon:
+                coupon.used_count += 1
+                coupon.save()
+                if 'coupon_code' in request.session:
+                    del request.session['coupon_code']
+            
+            # Clear cart
+            cart.items.all().delete()
+        
+        messages.success(request, 'Payment details submitted successfully! Your payment will be verified within 24 hours.')
+        return redirect('payments:payment_success', order_number=order.order_number)
+    
+    # GET request - display payment form
+    from .models import PaymentConfig
+    payment_config = PaymentConfig.get_config()
+    
+    context = {
+        'cart_items': cart_items,
+        'subtotal': subtotal,
+        'discount': discount,
+        'total': total,
+        'coupon': coupon,
+        'payment_config': payment_config,
+    }
+    return render(request, 'payments/upi_payment.html', context)

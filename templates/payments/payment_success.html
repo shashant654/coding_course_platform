@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment Submitted - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <!-- Success Message -->
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle fa-2x me-3"></i>
+        <div>
+          <h4 class="alert-heading">Payment Details Submitted!</h4>
+          <p class="mb-0">
+            Your payment details have been received. Your transaction will be
+            verified within 24 hours. You will receive an email notification once
+            your payment is approved.
+          </p>
+        </div>
+      </div>
+
+      <!-- Order Details Card -->
+      <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-receipt"></i> Order Details
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Order Number</p>
+              <h6 class="mb-3">
+                <code>{{ order.order_number }}</code>
+              </h6>
+            </div>
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Payment Status</p>
+              <h6 class="mb-3">
+                {% if order.payment_status == 'pending' %}
+                <span class="badge bg-warning text-dark">Pending Verification</span>
+                {% elif order.payment_status == 'completed' %}
+                <span class="badge bg-success">Completed</span>
+                {% elif order.payment_status == 'failed' %}
+                <span class="badge bg-danger">Failed</span>
+                {% endif %}
+              </h6>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Payment Method</p>
+              <h6 class="mb-3">
+                <i class="fas fa-mobile-alt"></i>
+                {% if order.payment_method == 'upi' %}UPI{% elif order.payment_method == 'razorpay' %}Razorpay{% else %}{{ order.payment_method|upper }}{% endif %}
+              </h6>
+            </div>
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Order Date</p>
+              <h6 class="mb-3">{{ order.created_at|date:"d M Y, H:i" }}</h6>
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="row">
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Subtotal</p>
+              <h6 class="mb-2">₹{{ order.total_amount }}</h6>
+            </div>
+            {% if order.discount_amount > 0 %}
+            <div class="col-md-6">
+              <p class="text-muted mb-1 text-success">Discount</p>
+              <h6 class="mb-2 text-success">-₹{{ order.discount_amount }}</h6>
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="row border-top pt-3 mt-3">
+            <div class="col-md-6">
+              <p class="text-muted mb-1">Total Amount</p>
+              <h5 class="text-success mb-0">₹{{ order.final_amount }}</h5>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Courses Ordered -->
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-book"></i> Courses Ordered
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Course Name</th>
+                  <th class="text-end">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in order_items %}
+                <tr>
+                  <td>
+                    <div>
+                      <h6 class="mb-1">{{ item.course.title }}</h6>
+                      <small class="text-muted">{{ item.course.category.name }}</small>
+                    </div>
+                  </td>
+                  <td class="text-end">₹{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- What's Next -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-clock"></i> What Happens Next?
+          </h5>
+        </div>
+        <div class="card-body">
+          <ol class="mb-0">
+            <li class="mb-3">
+              <strong>Payment Verification (24 hours)</strong>
+              <p class="text-muted mb-0">
+                Our team will verify your payment and confirm the transaction.
+              </p>
+            </li>
+            <li class="mb-3">
+              <strong>Email Notification</strong>
+              <p class="text-muted mb-0">
+                You'll receive an email confirmation once your payment is approved.
+              </p>
+            </li>
+            <li class="mb-3">
+              <strong>Course Access</strong>
+              <p class="text-muted mb-0">
+                After approval, you can immediately start learning the purchased
+                courses.
+              </p>
+            </li>
+            <li>
+              <strong>Certificate</strong>
+              <p class="text-muted mb-0">
+                Complete the courses to earn certificates of completion.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-grid gap-2 d-sm-flex justify-content-center mb-4">
+        <a href="{% url 'courses:course_list' %}" class="btn btn-primary">
+          <i class="fas fa-book"></i> Browse More Courses
+        </a>
+        <a href="{% url 'payments:order_history' %}" class="btn btn-outline-primary">
+          <i class="fas fa-history"></i> View All Orders
+        </a>
+      </div>
+
+      <!-- Important Notes -->
+      <div class="alert alert-info">
+        <h6 class="alert-heading">
+          <i class="fas fa-info-circle"></i> Important Notes
+        </h6>
+        <ul class="mb-0">
+          <li>Your order reference is <strong>{{ order.order_number }}</strong></li>
+          <li>Keep this reference for your records</li>
+          <li>
+            If you don't receive a confirmation email within 24 hours, please
+            contact support
+          </li>
+          <li>
+            You can track your order status from your dashboard at any time
+          </li>
+        </ul>
+      </div>
+
+      <!-- Contact Support -->
+      <div class="text-center mt-4 mb-4">
+        <p class="text-muted">
+          Need help? <a href="mailto:support@codelearn.com">Contact Support</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

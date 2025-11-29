@@ -16,6 +16,11 @@ urlpatterns = [
     path('checkout/success/<str:order_number>/', views.payment_success, name='payment_success'),
     path('checkout/cancel/', views.payment_cancel, name='payment_cancel'),
     
+    # Payment Gateway URLs
+    path('payment/razorpay/create-order/', views.create_razorpay_order, name='create_razorpay_order'),
+    path('payment/razorpay/verify/', views.verify_razorpay_payment, name='verify_razorpay_payment'),
+    path('payment/upi/', views.upi_payment, name='upi_payment'),
+    
     # Coupon URLs
     path('apply-coupon/', views.apply_coupon, name='apply_coupon'),
     path('remove-coupon/', views.remove_coupon, name='remove_coupon'),

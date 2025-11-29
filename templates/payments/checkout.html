@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Checkout</h2>
+
+  <div class="row">
+    <!-- Order Summary -->
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Order Summary</h5>
+        </div>
+        <div class="card-body">
+          {% for item in cart_items %}
+          <div class="d-flex align-items-center mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+            <img
+              src="{{ item.course.thumbnail_image.url }}"
+              alt="{{ item.course.title }}"
+              class="rounded me-3"
+              style="width: 100px; height: 70px; object-fit: cover"
+            />
+            <div class="flex-grow-1">
+              <h6 class="mb-1">{{ item.course.title }}</h6>
+              <p class="text-muted small mb-0">
+                By {{ item.course.instructor.get_full_name }}
+              </p>
+            </div>
+            <div class="text-end">
+              <strong class="text-primary">${{ item.course.get_actual_price }}</strong>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Select Payment Method</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'payments:process_payment' %}" id="paymentForm">
+            {% csrf_token %}
+
+            <!-- Razorpay Payment -->
+            <div class="form-check mb-3 p-3 border rounded">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="payment_method"
+                id="razorpay"
+                value="razorpay"
+                checked
+              />
+              <label class="form-check-label w-100" for="razorpay">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Razorpay</strong>
+                    <p class="text-muted small mb-0">Pay securely with Razorpay (Test Mode)</p>
+                  </div>
+                  <i class="fas fa-credit-card fa-2x text-primary"></i>
+                </div>
+              </label>
+            </div>
+
+            <!-- UPI QR Code -->
+            <div class="form-check mb-3 p-3 border rounded">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="payment_method"
+                id="upi_qr"
+                value="upi_qr"
+              />
+              <label class="form-check-label w-100" for="upi_qr">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>UPI QR Code</strong>
+                    <p class="text-muted small mb-0">Scan QR code with any UPI app</p>
+                  </div>
+                  <i class="fas fa-qrcode fa-2x text-success"></i>
+                </div>
+              </label>
+            </div>
+
+            <!-- Debit/Credit Card -->
+            <div class="form-check mb-3 p-3 border rounded">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="payment_method"
+                id="card"
+                value="card"
+              />
+              <label class="form-check-label w-100" for="card">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Debit / Credit Card</strong>
+                    <p class="text-muted small mb-0">Pay with your card</p>
+                  </div>
+                  <i class="fas fa-credit-card fa-2x text-info"></i>
+                </div>
+              </label>
+            </div>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              <strong>Note:</strong> You will be redirected to the payment gateway to complete your purchase securely.
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg w-100">
+              <i class="fas fa-lock"></i> Proceed to Payment
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Summary -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top: 20px">
+        <div class="card-header">
+          <h5 class="mb-0">Payment Summary</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal:</span>
+            <span>${{ subtotal }}</span>
+          </div>
+
+          {% if discount > 0 %}
+          <div class="d-flex justify-content-between mb-2 text-success">
+            <span>Discount:</span>
+            <span>-${{ discount }}</span>
+          </div>
+          {% endif %}
+
+          <hr />
+
+          <div class="d-flex justify-content-between mb-3">
+            <strong>Total:</strong>
+            <strong class="text-primary fs-4">${{ total }}</strong>
+          </div>
+
+          <div class="alert alert-success">
+            <i class="fas fa-shield-alt"></i> 100% Secure Payment
+          </div>
+
+          <ul class="list-unstyled small text-muted">
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>30-Day Money-Back Guarantee
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>Lifetime Access
+            </li>
+            <li class="mb-2">
+              <i class="fas fa-check text-success me-2"></i>Certificate of Completion
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+document.getElementById('paymentForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    
+    if (selectedMethod === 'razorpay') {
+        // Razorpay Integration
+        initiateRazorpayPayment();
+    } else if (selectedMethod === 'upi_qr') {
+        // Show UPI QR Code
+        showUPIQRCode();
+    } else if (selectedMethod === 'card') {
+        // Card Payment through Razorpay
+        initiateRazorpayPayment();
+    }
+});
+
+function initiateRazorpayPayment() {
+    // This should be called from backend with order details
+    fetch("{% url 'payments:create_razorpay_order' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            amount: {{ total }}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        var options = {
+            key: data.razorpay_key,
+            amount: data.amount,
+            currency: "INR",
+            name: "CodeLearn",
+            description: "Course Purchase",
+            order_id: data.order_id,
+            handler: function (response) {
+                // Verify payment
+                verifyPayment(response);
+            },
+            prefill: {
+                name: "{{ user.get_full_name }}",
+                email: "{{ user.email }}"
+            },
+            theme: {
+                color: "#5624d0"
+            }
+        };
+        var rzp = new Razorpay(options);
+        rzp.open();
+    });
+}
+
+function showUPIQRCode() {
+    // Redirect to UPI QR payment page
+    window.location.href = "{% url 'payments:upi_payment' %}";
+}
+
+function verifyPayment(response) {
+    fetch("{% url 'payments:verify_razorpay_payment' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(response)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        }
+    });
+}
+</script>
+{% endblock %}
