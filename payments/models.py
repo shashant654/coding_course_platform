@@ -49,6 +49,9 @@ class Order(models.Model):
     transaction_id = models.CharField(max_length=100, blank=True)
     razorpay_payment_id = models.CharField(max_length=200, blank=True)
     razorpay_order_id = models.CharField(max_length=200, blank=True)
+    verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_orders')
+    verified_at = models.DateTimeField(null=True, blank=True)
+    rejection_reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

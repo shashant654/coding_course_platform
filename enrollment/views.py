@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse
-from .models import Wishlist, Certificate, Enrollment
+from django.db import models
+from .models import Wishlist, Certificate, Enrollment, DailyClass
 from courses.models import Course
 
 
@@ -122,37 +123,80 @@ def download_certificate(request, certificate_id):
     # For now, just redirect to view
     messages.info(request, 'PDF download feature coming soon!')
     return redirect('enrollment:view_certificate', certificate_id=certificate_id)
+
+
+@login_required
+def my_learning(request):
+    """Display user's enrolled courses"""
+    enrollments = Enrollment.objects.filter(
+        user=request.user
+    ).select_related(
+        'course', 
+        'course__instructor',
+        'course__category'
+    ).order_by('-enrolled_at')
     
-    # Future implementation with reportlab:
-    """
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import letter, landscape
-    from io import BytesIO
+    context = {
+        'enrollments': enrollments,
+        'total_courses': enrollments.count(),
+        'completed_courses': enrollments.filter(is_completed=True).count(),
+    }
+    return render(request, 'enrollment/my_learning.html', context)
+
+
+@login_required
+def daily_classes(request):
+    """Display daily classes for enrolled students"""
+    from django.utils import timezone
+    from datetime import timedelta
     
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=landscape(letter))
+    # Check if user has any enrollments
+    has_enrollments = Enrollment.objects.filter(user=request.user).exists()
     
-    # Draw certificate
-    p.setFont("Helvetica-Bold", 36)
-    p.drawCentredString(400, 500, "Certificate of Completion")
+    if not has_enrollments:
+        messages.warning(request, 'You need to enroll in at least one course to access daily classes.')
+        return redirect('courses:course_list')
     
-    p.setFont("Helvetica", 24)
-    p.drawCentredString(400, 400, f"{certificate.user.get_full_name()}")
+    # Get user's enrolled courses
+    enrolled_course_ids = Enrollment.objects.filter(
+        user=request.user
+    ).values_list('course_id', flat=True)
     
-    p.setFont("Helvetica", 18)
-    p.drawCentredString(400, 350, f"has successfully completed")
-    p.drawCentredString(400, 300, f"{certificate.course.title}")
+    today = timezone.now().date()
     
-    p.setFont("Helvetica", 12)
-    p.drawCentredString(400, 200, f"Certificate No: {certificate.certificate_number}")
-    p.drawCentredString(400, 180, f"Date: {certificate.issued_date.strftime('%B %d, %Y')}")
+    # Today's classes
+    todays_classes = DailyClass.objects.filter(
+        is_active=True,
+        date=today
+    ).filter(
+        models.Q(course=None) |  # General classes for all students
+        models.Q(course_id__in=enrolled_course_ids)  # Course-specific classes
+    ).select_related('course', 'created_by').order_by('scheduled_time')
     
-    p.showPage()
-    p.save()
+    # Upcoming classes (next 7 days)
+    upcoming_classes = DailyClass.objects.filter(
+        is_active=True,
+        date__gt=today,
+        date__lte=today + timedelta(days=7)
+    ).filter(
+        models.Q(course=None) |
+        models.Q(course_id__in=enrolled_course_ids)
+    ).select_related('course', 'created_by').order_by('date', 'scheduled_time')
     
-    buffer.seek(0)
-    response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="certificate_{certificate.certificate_number}.pdf"'
+    # Past classes (last 3 days for reference)
+    past_classes = DailyClass.objects.filter(
+        is_active=True,
+        date__lt=today,
+        date__gte=today - timedelta(days=3)
+    ).filter(
+        models.Q(course=None) |
+        models.Q(course_id__in=enrolled_course_ids)
+    ).select_related('course', 'created_by').order_by('-date', '-scheduled_time')
     
-    return response
-    """
+    context = {
+        'todays_classes': todays_classes,
+        'upcoming_classes': upcoming_classes,
+        'past_classes': past_classes,
+        'today': today,
+    }
+    return render(request, 'enrollment/daily_classes.html', context)

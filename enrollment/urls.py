@@ -4,6 +4,10 @@ from . import views
 app_name = 'enrollment'
 
 urlpatterns = [
+    # Learning URLs
+    path('my-learning/', views.my_learning, name='my_learning'),
+    path('daily-classes/', views.daily_classes, name='daily_classes'),
+    
     # Wishlist URLs
     path('wishlist/', views.wishlist, name='wishlist'),
     path('wishlist/add/<int:course_id>/', views.add_to_wishlist, name='add_to_wishlist'),

@@ -61,3 +61,35 @@ class Certificate(models.Model):
     class Meta:
         db_table = 'certificates'
         unique_together = ['user', 'course']
+
+
+class DailyClass(models.Model):
+    """Google Meet classes for enrolled students"""
+    date = models.DateField(help_text="Date when the class is scheduled")
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True,
+        related_name='daily_classes',
+        help_text="Leave blank for classes available to all enrolled students"
+    )
+    title = models.CharField(max_length=200, help_text="Class title/topic")
+    description = models.TextField(help_text="Class agenda and topics to be covered")
+    meet_link = models.URLField(help_text="Google Meet link for the class")
+    scheduled_time = models.TimeField(help_text="Scheduled start time")
+    duration_minutes = models.PositiveIntegerField(default=60, help_text="Expected duration in minutes")
+    is_active = models.BooleanField(default=True, help_text="Uncheck to hide this class")
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_classes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        course_name = self.course.title if self.course else "All Students"
+        return f"{self.date} - {self.title} ({course_name})"
+    
+    class Meta:
+        db_table = 'daily_classes'
+        ordering = ['-date', '-scheduled_time']
+        verbose_name = 'Daily Class'
+        verbose_name_plural = 'Daily Classes'

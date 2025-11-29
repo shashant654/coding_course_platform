@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Daily Classes - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="mb-3"><i class="fas fa-video"></i> Daily Classes</h1>
+            <p class="text-muted">Join live sessions with instructors and fellow learners</p>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <a href="{% url 'enrollment:my_learning' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left"></i> Back to My Learning
+            </a>
+        </div>
+    </div>
+
+    <!-- Today's Classes -->
+    {% if todays_classes %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h3 class="mb-3"><i class="fas fa-calendar-day"></i> Today's Classes</h3>
+        </div>
+        
+        {% for class in todays_classes %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card border-primary h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-clock"></i> {{ class.scheduled_time|time:"g:i A" }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ class.title }}</h5>
+                    {% if class.course %}
+                        <p class="text-muted small">
+                            <i class="fas fa-book"></i> {{ class.course.title }}
+                        </p>
+                    {% else %}
+                        <p class="text-muted small">
+                            <i class="fas fa-users"></i> All Students
+                        </p>
+                    {% endif %}
+                    
+                    <p class="card-text">{{ class.description|truncatewords:20 }}</p>
+                    
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-hourglass-half"></i> Duration: {{ class.duration_minutes }} minutes
+                    </p>
+                    
+                    <a href="{{ class.meet_link }}" target="_blank" class="btn btn-success w-100">
+                        <i class="fas fa-video"></i> Join Meeting
+                    </a>
+                </div>
+                <div class="card-footer text-muted small">
+                    Created by {{ class.created_by.get_full_name }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> No classes scheduled for today.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Upcoming Classes -->
+    {% if upcoming_classes %}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <h3 class="mb-3"><i class="fas fa-calendar-alt"></i> Upcoming Classes (Next 7 Days)</h3>
+        </div>
+        
+        {% for class in upcoming_classes %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-calendar"></i> {{ class.date|date:"D, M d" }} - {{ class.scheduled_time|time:"g:i A" }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ class.title }}</h5>
+                    {% if class.course %}
+                        <p class="text-muted small">
+                            <i class="fas fa-book"></i> {{ class.course.title }}
+                        </p>
+                    {% else %}
+                        <p class="text-muted small">
+                            <i class="fas fa-users"></i> All Students
+                        </p>
+                    {% endif %}
+                    
+                    <p class="card-text">{{ class.description|truncatewords:20 }}</p>
+                    
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-hourglass-half"></i> Duration: {{ class.duration_minutes }} minutes
+                    </p>
+                    
+                    <a href="{{ class.meet_link }}" target="_blank" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-link"></i> Meeting Link
+                    </a>
+                </div>
+                <div class="card-footer text-muted small">
+                    Created by {{ class.created_by.get_full_name }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Past Classes (for reference) -->
+    {% if past_classes %}
+    <div class="row">
+        <div class="col-md-12">
+            <h3 class="mb-3"><i class="fas fa-history"></i> Recent Past Classes</h3>
+            <p class="text-muted small">Last 3 days - recordings may be available</p>
+        </div>
+        
+        {% for class in past_classes %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card h-100 opacity-75">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-calendar"></i> {{ class.date|date:"D, M d" }} - {{ class.scheduled_time|time:"g:i A" }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ class.title }}</h5>
+                    {% if class.course %}
+                        <p class="text-muted small">
+                            <i class="fas fa-book"></i> {{ class.course.title }}
+                        </p>
+                    {% else %}
+                        <p class="text-muted small">
+                            <i class="fas fa-users"></i> All Students
+                        </p>
+                    {% endif %}
+                    
+                    <p class="card-text">{{ class.description|truncatewords:20 }}</p>
+                    
+                    <span class="badge bg-secondary">
+                        <i class="fas fa-check"></i> Completed
+                    </span>
+                </div>
+                <div class="card-footer text-muted small">
+                    Created by {{ class.created_by.get_full_name }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not todays_classes and not upcoming_classes and not past_classes %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning" role="alert">
+                <h4 class="alert-heading"><i class="fas fa-calendar-times"></i> No classes scheduled</h4>
+                <p>There are currently no classes scheduled. Please check back later or contact your instructor.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
