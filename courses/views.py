@@ -9,6 +9,8 @@ from enrollment.models import Enrollment, LectureProgress
 from reviews.models import Review
 
 
+
+
 def course_list(request):
     """Display all published courses"""
     courses = Course.objects.filter(is_published=True).select_related(
