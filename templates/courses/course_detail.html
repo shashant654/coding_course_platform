@@ -152,12 +152,13 @@
           <h3 class="mb-4">Instructor</h3>
           <div class="d-flex align-items-start">
             <img
-              src="{{ course.instructor.profile_picture.url }}"
+              src="{% if course.instructor.profile_picture %}{{ course.instructor.profile_picture.url }}
+              {% else %}https://via.placeholder.com/80{% endif %}"
               alt="{{ course.instructor.get_full_name }}"
               class="rounded-circle me-3"
               width="80"
               height="80"
-              onerror="this.src='https://via.placeholder.com/80'"
+              
             />
             <div>
               <h5>{{ course.instructor.get_full_name }}</h5>
@@ -179,7 +180,7 @@
           <div class="mb-4 pb-4 border-bottom">
             <div class="d-flex align-items-start">
               <img
-                src="{{ review.user.profile_picture.url }}"
+                src="{% if review.user.profile_picture %}{{ review.user.profile_picture.url }}{% else %}https://via.placeholder.com/50{% endif %}"
                 alt="{{ review.user.username }}"
                 class="rounded-circle me-3"
                 width="50"
