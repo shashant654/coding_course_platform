@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Order History - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Order History</h2>
+
+  {% if orders %}
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Order Number</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders %}
+            <tr>
+              <td>
+                <strong>{{ order.order_number }}</strong>
+              </td>
+              <td>{{ order.created_at|date:"M d, Y" }}</td>
+              <td>{{ order.items.count }} course(s)</td>
+              <td class="text-primary">
+                <strong>${{ order.final_amount }}</strong>
+              </td>
+              <td>
+                {% if order.payment_status == 'completed' %}
+                <span class="badge bg-success">Completed</span>
+                {% elif order.payment_status == 'pending' %}
+                <span class="badge bg-warning">Pending</span>
+                {% elif order.payment_status == 'failed' %}
+                <span class="badge bg-danger">Failed</span>
+                {% else %}
+                <span class="badge bg-secondary">{{
+                  order.payment_status|title
+                }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <a
+                  href="{% url 'payments:order_detail' order.order_number %}"
+                  class="btn btn-sm btn-outline-primary"
+                >
+                  <i class="fas fa-eye"></i> View Details
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- No Orders -->
+  <div class="text-center py-5">
+    <i class="fas fa-receipt fa-5x text-muted mb-4"></i>
+    <h3>No orders yet</h3>
+    <p class="text-muted mb-4">
+      Start purchasing courses to see your order history here
+    </p>
+    <a href="{% url 'courses:course_list' %}" class="btn btn-primary">
+      Browse Courses
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

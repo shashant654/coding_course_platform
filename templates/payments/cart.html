@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <h2 class="mb-4">Shopping Cart</h2>
+
+  {% if cart_items %}
+  <div class="row">
+    <!-- Cart Items -->
+    <div class="col-lg-8">
+      {% for item in cart_items %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-3">
+              <img
+                src="{{ item.course.thumbnail_image.url }}"
+                class="img-fluid rounded"
+                alt="{{ item.course.title }}"
+              />
+            </div>
+            <div class="col-md-6">
+              <h5>
+                <a
+                  href="{% url 'courses:course_detail' item.course.slug %}"
+                  class="text-decoration-none text-dark"
+                >
+                  {{ item.course.title }}
+                </a>
+              </h5>
+              <p class="text-muted mb-1">
+                By {{ item.course.instructor.get_full_name }}
+              </p>
+              <div class="d-flex align-items-center">
+                <span class="star-rating me-2"
+                  >{{ item.course.average_rating|floatformat:1 }} ★</span
+                >
+                <span class="badge bg-secondary">{{ item.course.level|title }}</span>
+              </div>
+            </div>
+            <div class="col-md-3 text-end">
+              <h5 class="text-primary mb-3">
+                ${{ item.course.get_actual_price }}
+              </h5>
+              <form
+                method="post"
+                action="{% url 'payments:remove_from_cart' item.id %}"
+              >
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="fas fa-trash"></i> Remove
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Clear Cart Button -->
+      <form method="post" action="{% url 'payments:clear_cart' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-secondary">
+          <i class="fas fa-trash-alt"></i> Clear Cart
+        </button>
+      </form>
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="col-lg-4">
+      <div class="card sticky-top" style="top: 20px">
+        <div class="card-body">
+          <h5 class="mb-4">Order Summary</h5>
+
+          <div class="d-flex justify-content-between mb-2">
+            <span>Subtotal:</span>
+            <span>${{ subtotal }}</span>
+          </div>
+
+          {% if coupon_code %}
+          <div class="d-flex justify-content-between mb-2 text-success">
+            <span>Discount ({{ coupon_code }}):</span>
+            <span>-${{ discount }}</span>
+          </div>
+          <form
+            method="post"
+            action="{% url 'payments:remove_coupon' %}"
+            class="mb-3"
+          >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+              Remove Coupon
+            </button>
+          </form>
+          {% else %}
+          <!-- Coupon Form -->
+          <form
+            method="post"
+            action="{% url 'payments:apply_coupon' %}"
+            class="mb-3"
+          >
+            {% csrf_token %}
+            <div class="input-group">
+              <input
+                type="text"
+                name="coupon_code"
+                class="form-control"
+                placeholder="Coupon code"
+              />
+              <button type="submit" class="btn btn-outline-primary">
+                Apply
+              </button>
+            </div>
+          </form>
+          {% endif %}
+
+          <hr />
+
+          <div class="d-flex justify-content-between mb-4">
+            <strong>Total:</strong>
+            <strong class="text-primary">${{ total }}</strong>
+          </div>
+
+          <a
+            href="{% url 'payments:checkout' %}"
+            class="btn btn-primary w-100 mb-2"
+          >
+            <i class="fas fa-lock"></i> Proceed to Checkout
+          </a>
+
+          <a
+            href="{% url 'courses:course_list' %}"
+            class="btn btn-outline-secondary w-100"
+          >
+            Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- Empty Cart -->
+  <div class="text-center py-5">
+    <i class="fas fa-shopping-cart fa-5x text-muted mb-4"></i>
+    <h3>Your cart is empty</h3>
+    <p class="text-muted mb-4">
+      Start adding courses to your cart to see them here
+    </p>
+    <a href="{% url 'courses:course_list' %}" class="btn btn-primary">
+      Browse Courses
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
