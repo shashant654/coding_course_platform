@@ -175,3 +175,40 @@ class PaymentTransaction(models.Model):
     
     def __str__(self):
         return f"{self.transaction_id} - {self.status}"
+
+
+class Invoice(models.Model):
+    """Track all invoices generated for orders"""
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='invoice')
+    invoice_number = models.CharField(max_length=50, unique=True)
+    invoice_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField(null=True, blank=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'invoices'
+        ordering = ['-invoice_date']
+    
+    def __str__(self):
+        return f"Invoice {self.invoice_number} - {self.order.user.username}"
+    
+    @classmethod
+    def generate_invoice_number(cls):
+        """Generate unique invoice number with sequence"""
+        from django.utils import timezone
+        year = timezone.now().year
+        month = timezone.now().month
+        
+        # Get count of invoices for this month
+        count = cls.objects.filter(
+            invoice_date__year=year,
+            invoice_date__month=month
+        ).count() + 1
+        
+        return f"INV-{year}{month:02d}-{count:05d}"

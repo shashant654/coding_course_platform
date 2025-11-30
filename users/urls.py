@@ -21,6 +21,7 @@ urlpatterns = [
     path('instructor/courses/', views.instructor_courses, name='instructor_courses'),
     path('instructor/analytics/', views.instructor_analytics, name='instructor_analytics'),
     
+    
     # Password Reset URLs
     path('password-reset/', 
          auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'),

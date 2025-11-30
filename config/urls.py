@@ -8,6 +8,9 @@ from django.conf.urls.static import static
 from django.shortcuts import render
 from courses.models import Course, Category
 from django.db.models import Count, Avg
+from django.http import HttpResponse
+from django.core.mail import send_mail
+
 
 def home(request):
     """Homepage view with featured courses"""
@@ -49,6 +52,17 @@ def home(request):
     
     return render(request, 'home/index.html', context)
 
+
+def send_test_email(request):
+    send_mail(
+        subject='Test Email',
+        message='Hello! This is a test email from Django.',
+        from_email=None,  # It will use DEFAULT_FROM_EMAIL from settings
+        recipient_list=['grounnoimoudete-4959@yopmail.com'],  # Your email here
+        fail_silently=False,
+    )
+    return HttpResponse("Test Email Sent Successfully!")
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home, name='home'),  # Updated to use the new home view
@@ -57,6 +71,7 @@ urlpatterns = [
     path('enrollment/', include('enrollment.urls')),
     path('payments/', include('payments.urls')),
     path('reviews/', include('reviews.urls')),
+    path('send-test-email/', send_test_email, name='send_test_email'),
 ]
 
 if settings.DEBUG:

@@ -5,11 +5,79 @@ from django.utils.html import strip_tags
 
 
 def send_payment_approved_email(order):
-    """Send email notification when payment is approved"""
+    """Send email notification when payment is approved with invoice details"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     subject = f'Payment Approved - {order.order_number}'
+    
+    print(f"\n{'='*60}")
+    print(f"📧 EMAIL DEBUG: Starting email composition")
+    print(f"Order: {order.order_number}")
+    print(f"User Email: {order.user.email}")
+    print(f"{'='*60}\n")
+    
+    logger.info(f"Starting email composition for order {order.order_number}")
     
     # Get course names
     course_names = [item.course.title for item in order.items.all()]
+    print(f"📚 Courses: {course_names}")
+    
+    # Get or create invoice
+    invoice = None
+    if hasattr(order, 'invoice'):
+        invoice = order.invoice
+        print(f"📄 Invoice found: {invoice.invoice_number}")
+        logger.info(f"Invoice {invoice.invoice_number} found for order {order.order_number}")
+    else:
+        print(f"⚠️  No invoice found for order {order.order_number}")
+        logger.warning(f"No invoice found for order {order.order_number}")
+    
+    # Build invoice section
+    invoice_html = ""
+    if invoice:
+        item_rows = ""
+        for idx, item in enumerate(order.items.all(), 1):
+            item_rows += f"""
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 10px; text-align: left;">{idx}. {item.course.title}</td>
+                <td style="padding: 10px; text-align: right;">₹{item.price}</td>
+            </tr>
+            """
+        
+        invoice_html = f"""
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <h3 style="margin-top: 0; border-bottom: 2px solid #4CAF50; padding-bottom: 10px;">Invoice Details</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <p><strong>Invoice Number:</strong> {invoice.invoice_number}</p>
+                <p><strong>Invoice Date:</strong> {invoice.invoice_date.strftime('%d %B %Y')}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                <thead>
+                    <tr style="background-color: #f0f0f0; border-bottom: 2px solid #ddd;">
+                        <th style="padding: 10px; text-align: left; font-weight: bold;">Course</th>
+                        <th style="padding: 10px; text-align: right; font-weight: bold;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {item_rows}
+                </tbody>
+            </table>
+            
+            <div style="background-color: #e8f5e9; padding: 15px; border-radius: 3px; text-align: right;">
+                <p style="margin: 5px 0;"><strong>Subtotal:</strong> ₹{invoice.subtotal}</p>
+                {f'<p style="margin: 5px 0; color: #4CAF50;"><strong>Discount:</strong> -₹{invoice.discount_amount}</p>' if invoice.discount_amount > 0 else ''}
+                {f'<p style="margin: 5px 0;"><strong>Tax:</strong> ₹{invoice.tax_amount}</p>' if invoice.tax_amount > 0 else ''}
+                <p style="margin: 10px 0; font-size: 16px; border-top: 2px solid #4CAF50; padding-top: 10px;">
+                    <strong>Total Amount Paid:</strong> ₹{invoice.total_amount}
+                </p>
+            </div>
+        </div>
+        """
+    else:
+        print(f"⚠️  Skipping invoice section - no invoice available")
     
     html_message = f"""
     <html>
@@ -26,12 +94,15 @@ def send_payment_approved_email(order):
                 <p><strong>Order Number:</strong> {order.order_number}</p>
                 <p><strong>Amount Paid:</strong> ₹{order.final_amount}</p>
                 <p><strong>Payment Status:</strong> <span style="color: #4CAF50;">Completed</span></p>
+                <p><strong>Payment Method:</strong> {order.payment_method.upper() if order.payment_method else 'N/A'}</p>
             </div>
+            
+            {invoice_html}
             
             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="margin-top: 0;">Enrolled Courses</h3>
-                <ul>
-                    {''.join([f'<li>{course}</li>' for course in course_names])}
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    {''.join([f'<li style="margin: 8px 0;">{course}</li>' for course in course_names])}
                 </ul>
             </div>
             
@@ -49,6 +120,7 @@ def send_payment_approved_email(order):
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
             
             <p style="font-size: 12px; color: #666;">
+                <strong>Invoice Details:</strong> Please keep this email for your records. Your invoice has been generated and can be downloaded from your order history.<br>
                 If you have any questions, please contact our support team.<br>
                 This is an automated email, please do not reply directly.
             </p>
@@ -59,7 +131,17 @@ def send_payment_approved_email(order):
     
     plain_message = strip_tags(html_message)
     
+    print(f"\n📝 Email Configuration:")
+    print(f"  FROM: {settings.DEFAULT_FROM_EMAIL}")
+    print(f"  TO: {order.user.email}")
+    print(f"  SUBJECT: {subject}")
+    print(f"  HOST: {settings.EMAIL_HOST}")
+    print(f"  PORT: {settings.EMAIL_PORT}")
+    print(f"  USE_SSL: {settings.EMAIL_USE_SSL}")
+    print(f"  USE_TLS: {settings.EMAIL_USE_TLS}")
+    
     try:
+        print(f"\n📤 Attempting to send email...")
         send_mail(
             subject=subject,
             message=plain_message,
@@ -68,9 +150,15 @@ def send_payment_approved_email(order):
             html_message=html_message,
             fail_silently=False,
         )
+        print(f"✅ Email sent successfully!")
+        logger.info(f"Email sent successfully to {order.user.email} for order {order.order_number}")
         return True
     except Exception as e:
-        print(f"Error sending email: {e}")
+        print(f"❌ Email sending failed!")
+        print(f"Exception Type: {type(e).__name__}")
+        print(f"Exception Message: {str(e)}")
+        print(f"Full Error: {repr(e)}")
+        logger.error(f"Email sending failed for {order.user.email}: {str(e)}", exc_info=True)
         return False
 
 
@@ -106,10 +194,10 @@ def send_payment_rejected_email(order, reason=""):
             
             <div style="background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin: 20px 0;">
                 <h3 style="margin-top: 0;">What to do next?</h3>
-                <ul>
-                    <li>Check if your payment was actually deducted from your account</li>
-                    <li>Keep your payment screenshot/transaction ID ready</li>
-                    <li>Contact support with your order number: <strong>{order.order_number}</strong></li>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li style="margin: 8px 0;">Check if your payment was actually deducted from your account</li>
+                    <li style="margin: 8px 0;">Keep your payment screenshot/transaction ID ready</li>
+                    <li style="margin: 8px 0;">Contact support with your order number: <strong>{order.order_number}</strong></li>
                 </ul>
             </div>
             
@@ -148,3 +236,25 @@ def send_payment_rejected_email(order, reason=""):
     except Exception as e:
         print(f"Error sending email: {e}")
         return False
+
+
+def create_invoice_for_order(order):
+    """Create an invoice for an order"""
+    from .models import Invoice
+    
+    # Check if invoice already exists
+    if hasattr(order, 'invoice'):
+        return order.invoice
+    
+    # Create new invoice
+    invoice = Invoice.objects.create(
+        order=order,
+        invoice_number=Invoice.generate_invoice_number(),
+        subtotal=order.total_amount,
+        discount_amount=order.discount_amount,
+        tax_amount=0,  # Set tax if applicable
+        total_amount=order.final_amount,
+        notes="Payment verified and invoice generated"
+    )
+    
+    return invoice

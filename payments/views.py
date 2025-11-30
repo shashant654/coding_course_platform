@@ -213,13 +213,20 @@ def process_payment(request):
 
 @login_required
 def payment_success(request, order_number):
-    """Payment success page"""
+    """Payment success page - handles both completed and pending payments"""
     order = get_object_or_404(Order, order_number=order_number, user=request.user)
     order_items = order.items.select_related('course')
+    
+    # Get payment transaction if exists (for UPI payments)
+    payment_txn = None
+    if order.payment_method == 'upi':
+        from .models import PaymentTransaction
+        payment_txn = PaymentTransaction.objects.filter(order=order).first()
     
     context = {
         'order': order,
         'order_items': order_items,
+        'payment_txn': payment_txn,
     }
     return render(request, 'payments/payment_success.html', context)
 
@@ -438,6 +445,18 @@ def verify_razorpay_payment(request):
                 item.course.total_enrollments += 1
                 item.course.save()
             
+            # Create invoice
+            from .models import Invoice
+            Invoice.objects.create(
+                order=order,
+                invoice_number=Invoice.generate_invoice_number(),
+                subtotal=subtotal,
+                discount_amount=discount,
+                tax_amount=0,
+                total_amount=final_amount,
+                notes="Razorpay payment verified automatically"
+            )
+            
             # Update coupon usage
             if coupon:
                 coupon.used_count += 1
@@ -447,6 +466,10 @@ def verify_razorpay_payment(request):
             
             # Clear cart
             cart.items.all().delete()
+            
+            # Send payment approved email
+            from .emails import send_payment_approved_email
+            send_payment_approved_email(order)
         
         return JsonResponse({
             'success': True,
