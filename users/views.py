@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from .models import User
+from .emails import send_welcome_email
 import re
 
 
@@ -116,9 +117,12 @@ def register(request):
                 last_name=last_name,
             )
             
+            # Send welcome email
+            send_welcome_email(user)
+            
             # Automatically log in the user after registration
             login(request, user)
-            messages.success(request, 'Registration successful! Welcome to CodeLearn.')
+            messages.success(request, 'Registration successful! Welcome to CodeLearn. Check your email for a welcome message.')
             return redirect('home')
             
         except Exception as e:
