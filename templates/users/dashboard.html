@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}User Dashboard - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- Header Section -->
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <h1 class="mb-1">Welcome, {{ user.first_name|default:user.username }}!</h1>
+      <p class="text-muted">Manage your courses, payments, and profile from here</p>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="row mb-5">
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-0 small">Active Courses</p>
+              <h3 class="mb-0">0</h3>
+            </div>
+            <i class="fas fa-book fa-2x text-primary opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-0 small">Completed</p>
+              <h3 class="mb-0">0</h3>
+            </div>
+            <i class="fas fa-check-circle fa-2x text-success opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-0 small">Learning Hours</p>
+              <h3 class="mb-0">0</h3>
+            </div>
+            <i class="fas fa-clock fa-2x text-warning opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3 mb-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <p class="text-muted mb-0 small">Wishlist</p>
+              <h3 class="mb-0">0</h3>
+            </div>
+            <i class="fas fa-heart fa-2x text-danger opacity-50"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row mb-5">
+    <div class="col-md-12">
+      <h5 class="mb-3">Quick Actions</h5>
+      <div class="row">
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url 'enrollment:my_learning' %}"
+            class="card text-decoration-none text-dark border-0 shadow-sm transition-all"
+          >
+            <div class="card-body text-center">
+              <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+              <h6 class="card-title">My Courses</h6>
+              <small class="text-muted">View enrolled courses</small>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url 'courses:course_list' %}"
+            class="card text-decoration-none text-dark border-0 shadow-sm transition-all"
+          >
+            <div class="card-body text-center">
+              <i class="fas fa-search fa-3x text-primary mb-3"></i>
+              <h6 class="card-title">Browse Courses</h6>
+              <small class="text-muted">Explore more courses</small>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url 'payments:order_history' %}"
+            class="card text-decoration-none text-dark border-0 shadow-sm transition-all"
+          >
+            <div class="card-body text-center">
+              <i class="fas fa-history fa-3x text-primary mb-3"></i>
+              <h6 class="card-title">Order History</h6>
+              <small class="text-muted">View past purchases</small>
+            </div>
+          </a>
+        </div>
+
+        <div class="col-md-3 mb-3">
+          <a
+            href="{% url 'users:profile' %}"
+            class="card text-decoration-none text-dark border-0 shadow-sm transition-all"
+          >
+            <div class="card-body text-center">
+              <i class="fas fa-user fa-3x text-primary mb-3"></i>
+              <h6 class="card-title">Profile</h6>
+              <small class="text-muted">Manage profile settings</small>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="row">
+    <div class="col-md-8">
+      <h5 class="mb-3">Recent Activity</h5>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <p class="text-muted text-center py-4">
+            <i class="fas fa-inbox fa-2x text-gray-light mb-2"></i>
+            <br />
+            No recent activity
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-md-4">
+      <h5 class="mb-3">Account Info</h5>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <ul class="list-unstyled">
+            <li class="mb-3">
+              <small class="text-muted">Name</small>
+              <p class="mb-0">
+                {{ user.first_name }} {{ user.last_name|default:"" }}
+              </p>
+            </li>
+            <li class="mb-3">
+              <small class="text-muted">Email</small>
+              <p class="mb-0">{{ user.email }}</p>
+            </li>
+            <li class="mb-3">
+              <small class="text-muted">Username</small>
+              <p class="mb-0">{{ user.username }}</p>
+            </li>
+            <li>
+              <small class="text-muted">Member Since</small>
+              <p class="mb-0">{{ user.date_joined|date:"M d, Y" }}</p>
+            </li>
+          </ul>
+          <a
+            href="{% url 'users:profile' %}"
+            class="btn btn-sm btn-outline-primary mt-3 w-100"
+          >
+            Edit Profile
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .transition-all {
+    transition: all 0.3s ease;
+  }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  .text-gray-light {
+    color: #d1d7dc;
+  }
+</style>
+{% endblock %}

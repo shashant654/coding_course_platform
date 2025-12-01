@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Course, Section, Lecture
+from .models import Category, Course, Section, Lecture, CallbackRequest
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -32,3 +32,26 @@ class SectionAdmin(admin.ModelAdmin):
 class LectureAdmin(admin.ModelAdmin):
     list_display = ['title', 'section', 'duration_minutes', 'is_preview', 'order']
     list_filter = ['is_preview']
+
+@admin.register(CallbackRequest)
+class CallbackRequestAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'phone', 'course', 'status', 'created_at']
+    list_filter = ['status', 'created_at', 'course']
+    search_fields = ['name', 'email', 'phone', 'course__title']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Requester Information', {
+            'fields': ('name', 'email', 'phone')
+        }),
+        ('Course', {
+            'fields': ('course',)
+        }),
+        ('Status', {
+            'fields': ('status', 'notes')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

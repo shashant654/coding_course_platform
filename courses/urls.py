@@ -13,6 +13,7 @@ urlpatterns = [
     path('<slug:slug>/', views.course_detail, name='course_detail'),
     path('<slug:slug>/player/', views.course_player, name='course_player'),
     path('<slug:slug>/player/<int:lecture_id>/', views.course_player, name='course_player_lecture'),
+    path('<slug:slug>/callback/', views.request_callback, name='request_callback'),
     
     # AJAX endpoints
     path('ajax/update-progress/', views.update_lecture_progress, name='update_lecture_progress'),

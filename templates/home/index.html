@@ -4,124 +4,240 @@
 {% block title %}Home - CodeLearn{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="bg-light py-5">
-  <div class="container">
+<!-- Hero Section with Gradient Background -->
+<section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 0; position: relative; overflow: hidden;">
+  <!-- Animated background elements -->
+  <div style="position: absolute; top: 0; right: 0; width: 500px; height: 500px; background: rgba(255,255,255,0.05); border-radius: 50%; transform: translate(150px, -100px);"></div>
+  <div style="position: absolute; bottom: 0; left: 0; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%; transform: translate(-100px, 150px);"></div>
+  
+  <div class="container" style="position: relative; z-index: 1;">
     <div class="row align-items-center">
-      <div class="col-lg-6">
-        <h1 class="display-4 fw-bold mb-3">Learn Coding Skills Online</h1>
-        <p class="lead text-muted mb-4">
-          Master programming, web development, data science, and more with
-          expert-led courses. Start your journey today!
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <span class="badge bg-white text-primary mb-3" style="font-size: 0.9rem; padding: 8px 16px;">Transform Your Future</span>
+        <h1 style="font-size: 3.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 20px;">
+          Learn Coding Skills From Industry Experts
+        </h1>
+        <p style="font-size: 1.1rem; opacity: 0.95; margin-bottom: 30px; line-height: 1.6;">
+          Master programming, web development, data science, and more with expert-led courses. Build real projects and accelerate your career today!
         </p>
-        <div class="d-flex gap-3">
-          <a href="{% url 'courses:course_list' %}" class="btn btn-primary btn-lg">
-            Browse Courses
+        <div class="d-flex gap-3 mb-4">
+          <a href="{% url 'courses:course_list' %}" class="btn btn-light btn-lg" style="padding: 12px 40px; font-weight: 600;">
+            Explore Courses
           </a>
           {% if not user.is_authenticated %}
-          <a href="{% url 'users:register' %}" class="btn btn-outline-primary btn-lg">
+          <a href="{% url 'users:register' %}" class="btn btn-outline-light btn-lg" style="padding: 12px 40px; font-weight: 600;">
             Sign Up Free
           </a>
           {% endif %}
         </div>
 
-        <div class="mt-4">
-          <div class="d-flex gap-4">
-            <div>
-              <h4 class="fw-bold text-primary mb-0">10K+</h4>
-              <p class="text-muted small">Students</p>
-            </div>
-            <div>
-              <h4 class="fw-bold text-primary mb-0">{{ popular_courses.count }}+</h4>
-              <p class="text-muted small">Courses</p>
-            </div>
-            <div>
-              <h4 class="fw-bold text-primary mb-0">50+</h4>
-              <p class="text-muted small">Instructors</p>
-            </div>
+        <div class="d-flex gap-5 mt-5">
+          <div>
+            <h4 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 5px;">10K+</h4>
+            <p style="opacity: 0.9; margin: 0;">Active Students</p>
+          </div>
+          <div>
+            <h4 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 5px;">{{ popular_courses.count }}+</h4>
+            <p style="opacity: 0.9; margin: 0;">Courses</p>
+          </div>
+          <div>
+            <h4 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 5px;">50+</h4>
+            <p style="opacity: 0.9; margin: 0;">Expert Instructors</p>
           </div>
         </div>
       </div>
 
+      <!-- Request a Callback Card - RIGHT SIDE -->
       <div class="col-lg-6">
-        <img
-          src="https://via.placeholder.com/600x400?text=Learn+to+Code"
-          alt="Learning"
-          class="img-fluid rounded"
-        />
+        <div class="card" style="background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
+          <div class="card-body" style="padding: 30px;">
+            <h5 class="card-title fw-bold mb-3" style="color: #333; border-bottom: 3px solid #00bcd4; padding-bottom: 15px; font-size: 1.3rem;">
+              <i class="fas fa-phone me-2" style="color: #ff4757;"></i>Request a Callback
+            </h5>
+
+            <form method="post" action="#" class="mt-4">
+              {% csrf_token %}
+              <div class="mb-3">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Name"
+                  name="callback_name"
+                  required
+                  style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px 15px; font-size: 0.95rem;"
+                />
+              </div>
+
+              <div class="mb-3">
+                <input
+                  type="email"
+                  class="form-control"
+                  placeholder="Email"
+                  name="callback_email"
+                  required
+                  style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px 15px; font-size: 0.95rem;"
+                />
+              </div>
+
+              <div class="mb-4">
+                <input
+                  type="tel"
+                  class="form-control"
+                  placeholder="Phone Number"
+                  name="callback_phone"
+                  required
+                  style="border-radius: 8px; border: 1px solid #e0e0e0; padding: 12px 15px; font-size: 0.95rem;"
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="btn w-100 text-white fw-bold"
+                style="background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%); border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: 600;"
+              >
+                Submit Now
+              </button>
+            </form>
+
+            <p class="text-muted text-center small mt-4 mb-0" style="font-size: 0.9rem;">
+              <i class="fas fa-info-circle me-1" style="color: #00bcd4;"></i>We'll call you within 24 hours
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Categories Section -->
-<section class="py-5">
+<!-- Categories Section with Icons -->
+<section style="padding: 80px 0; background-color: white;">
   <div class="container">
-    <h2 class="text-center mb-5">Explore Top Categories</h2>
+    <div style="text-align: center; margin-bottom: 60px;">
+      <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 15px;">Explore Top Categories</h2>
+      <p style="font-size: 1.1rem; color: #666;">Learn in-demand skills from expert instructors</p>
+    </div>
 
     <div class="row g-4">
-      {% for category in categories %}
-      <div class="col-md-3">
-        <a href="{% url 'courses:category_courses' category.slug %}" class="text-decoration-none">
-          <div class="card text-center h-100 border-0 shadow-sm hover-shadow">
-            <div class="card-body">
-              <i class="{{ category.icon }} fa-3x text-primary mb-3"></i>
-              <h5 class="card-title">{{ category.name }}</h5>
-              <p class="card-text text-muted">{{ category.description|truncatewords:8 }}</p>
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-laptop fa-2x"></i>
             </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">Web Development</h6>
           </div>
         </a>
       </div>
-      {% endfor %}
+
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-mobile-alt fa-2x"></i>
+            </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">Mobile Apps</h6>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-database fa-2x"></i>
+            </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">Data Science</h6>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-cube fa-2x"></i>
+            </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">3D Design</h6>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-palette fa-2x"></i>
+            </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">UI/UX Design</h6>
+          </div>
+        </a>
+      </div>
+
+      <div class="col-md-4 col-lg-2 mb-4">
+        <a href="#" class="text-decoration-none">
+          <div class="text-center h-100" style="padding: 30px 20px; transition: all 0.3s ease;">
+            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+              <i class="fas fa-brain fa-2x"></i>
+            </div>
+            <h6 style="font-weight: 700; margin-bottom: 10px; font-size: 0.95rem;">AI & ML</h6>
+          </div>
+        </a>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- Featured Courses -->
+<!-- Featured Courses Section -->
 {% if featured_courses %}
-<section class="py-5 bg-light">
+<section style="padding: 80px 0; background-color: #f8f9fa;">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Featured Courses</h2>
-      <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary">View All</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;">
+      <div>
+        <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 10px;">Get Started With All Courses</h2>
+        <p style="color: #666; margin: 0;">Explore our collection of expert-led courses</p>
+      </div>
+      <a href="{% url 'courses:course_list' %}" style="color: #667eea; text-decoration: none; font-weight: 600;">View All Courses →</a>
     </div>
 
     <div class="row g-4">
-      {% for course in featured_courses %}
-      <div class="col-md-3">
-        <div class="card course-card h-100">
-          <img
-            src="{{ course.thumbnail_image.url }}"
-            class="card-img-top"
-            alt="{{ course.title }}"
-            style="height: 200px; object-fit: cover"
-          />
+      {% for course in featured_courses|slice:":3" %}
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="overflow: hidden; transition: all 0.3s ease; border-radius: 12px;">
+          <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <img
+              src="{{ course.thumbnail_image.url }}"
+              class="w-100 h-100"
+              alt="{{ course.title }}"
+              style="object-fit: cover; transition: transform 0.3s ease;"
+            />
+            <span class="badge bg-danger position-absolute" style="top: 10px; right: 10px;">Featured</span>
+          </div>
           <div class="card-body d-flex flex-column">
-            <span class="badge bg-warning text-dark mb-2 align-self-start">Featured</span>
-            <h6 class="card-title">
+            <h6 class="card-title fw-bold mb-2" style="font-size: 1rem;">
               <a href="{% url 'courses:course_detail' course.slug %}" class="text-decoration-none text-dark">
-                {{ course.title|truncatewords:8 }}
+                {{ course.title|truncatewords:6 }}
               </a>
             </h6>
-            <p class="text-muted small mb-2">{{ course.instructor.get_full_name }}</p>
-            <div class="d-flex align-items-center mb-2">
-              <span class="star-rating me-1">{{ course.average_rating|floatformat:1 }} ★★★★★</span>
-              <span class="text-muted small">({{ course.total_enrollments }})</span>
+            <p class="text-muted small mb-3">{{ course.instructor.get_full_name }}</p>
+            <div class="mb-3">
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star-half" style="color: #ffc107;"></span>
+              <span class="text-muted small ms-2">({{ course.total_enrollments }} reviews)</span>
             </div>
             <div class="mt-auto">
-              <div class="d-flex justify-content-between align-items-center">
-                {% if course.price == 0 %}
-                <span class="fw-bold text-success">FREE</span>
-                {% else %}
-                <div>
-                  <span class="fw-bold text-primary">${{ course.get_actual_price }}</span>
-                  {% if course.has_discount %}
-                  <span class="text-decoration-line-through text-muted small">${{ course.price }}</span>
-                  {% endif %}
-                </div>
+              {% if course.price == 0 %}
+              <p class="fw-bold text-success mb-0">FREE</p>
+              {% else %}
+              <p class="fw-bold mb-0">
+                <span style="color: #667eea; font-size: 1.2rem;">${{ course.get_actual_price }}</span>
+                {% if course.has_discount %}
+                <span class="text-decoration-line-through text-muted ms-2" style="font-size: 0.9rem;">${{ course.price }}</span>
                 {% endif %}
-                <span class="badge bg-secondary">{{ course.level|title }}</span>
-              </div>
+              </p>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -132,120 +248,254 @@
 </section>
 {% endif %}
 
-<!-- Popular Courses -->
+<!-- Popular Courses Section -->
 {% if popular_courses %}
-<section class="py-5">
+<section style="padding: 80px 0; background-color: white;">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Most Popular Courses</h2>
-      <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary">View All</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px;">
+      <div>
+        <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 10px;">Most Popular Courses</h2>
+        <p style="color: #666; margin: 0;">Trending courses this week</p>
+      </div>
+      <a href="{% url 'courses:course_list' %}" style="color: #667eea; text-decoration: none; font-weight: 600;">Browse All →</a>
     </div>
 
     <div class="row g-4">
-      {% for course in popular_courses|slice:":4" %}
-      <div class="col-md-3">
-        <div class="card course-card h-100">
-          <img
-            src="{{ course.thumbnail_image.url }}"
-            class="card-img-top"
-            alt="{{ course.title }}"
-            style="height: 200px; object-fit: cover"
-          />
-          <div class="card-body d-flex flex-column">
+      {% for course in popular_courses|slice:":3" %}
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100" style="overflow: hidden; transition: all 0.3s ease; border-radius: 12px;">
+          <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <img
+              src="{{ course.thumbnail_image.url }}"
+              class="w-100 h-100"
+              alt="{{ course.title }}"
+              style="object-fit: cover; transition: transform 0.3s ease;"
+            />
             {% if course.is_featured %}
-            <span class="badge bg-warning text-dark mb-2 align-self-start">Bestseller</span>
+            <span class="badge bg-warning text-dark position-absolute" style="top: 10px; right: 10px;">Bestseller</span>
             {% endif %}
-            <h6 class="card-title">
+          </div>
+          <div class="card-body d-flex flex-column">
+            <h6 class="card-title fw-bold mb-2" style="font-size: 1rem;">
               <a href="{% url 'courses:course_detail' course.slug %}" class="text-decoration-none text-dark">
-                {{ course.title|truncatewords:8 }}
+                {{ course.title|truncatewords:6 }}
               </a>
             </h6>
-            <p class="text-muted small mb-2">{{ course.instructor.get_full_name }}</p>
-            <div class="d-flex align-items-center mb-2">
-              <span class="star-rating me-1">{{ course.average_rating|floatformat:1 }} ★★★★★</span>
-              <span class="text-muted small">({{ course.total_enrollments }})</span>
+            <p class="text-muted small mb-3">{{ course.instructor.get_full_name }}</p>
+            <div class="mb-3">
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star" style="color: #ffc107;"></span>
+              <span class="fa fa-star-half" style="color: #ffc107;"></span>
+              <span class="text-muted small ms-2">({{ course.total_enrollments }} reviews)</span>
             </div>
             <div class="mt-auto">
-              <div class="d-flex justify-content-between align-items-center">
-                {% if course.price == 0 %}
-                <span class="fw-bold text-success">FREE</span>
-                {% else %}
-                <div>
-                  <span class="fw-bold text-primary">${{ course.get_actual_price }}</span>
-                  {% if course.has_discount %}
-                  <span class="text-decoration-line-through text-muted small">${{ course.price }}</span>
-                  {% endif %}
-                </div>
+              {% if course.price == 0 %}
+              <p class="fw-bold text-success mb-0">FREE</p>
+              {% else %}
+              <p class="fw-bold mb-0">
+                <span style="color: #667eea; font-size: 1.2rem;">${{ course.get_actual_price }}</span>
+                {% if course.has_discount %}
+                <span class="text-decoration-line-through text-muted ms-2" style="font-size: 0.9rem;">${{ course.price }}</span>
                 {% endif %}
-                <span class="badge bg-secondary">{{ course.level|title }}</span>
-              </div>
+              </p>
+              {% endif %}
             </div>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
+
+    <div class="text-center mt-5">
+      <a href="{% url 'courses:course_list' %}" class="btn btn-outline-primary btn-lg" style="padding: 12px 40px;">
+        View All Courses
+      </a>
+    </div>
   </div>
 </section>
 {% endif %}
 
-<!-- Why Choose Us -->
-<section class="py-5 bg-light">
+<!-- Why FutureLearn/CodeLearn Section -->
+<section style="padding: 80px 0; background-color: #f8f9fa;">
   <div class="container">
-    <h2 class="text-center mb-5">Why Choose CodeLearn?</h2>
+    <h2 style="font-size: 2.2rem; font-weight: 700; text-align: center; margin-bottom: 50px;">Why Choose CodeLearn?</h2>
 
     <div class="row g-4">
-      <div class="col-md-4">
-        <div class="text-center">
-          <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-            <i class="fas fa-infinity fa-2x text-primary"></i>
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-book fa-2x"></i>
           </div>
-          <h5>Lifetime Access</h5>
-          <p class="text-muted">
-            Access your courses anytime, anywhere with no time limits
-          </p>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">Lifetime Access</h5>
+          <p style="color: #666; line-height: 1.6;">Access your courses anytime, anywhere with lifetime access. Learn at your own pace without any restrictions.</p>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="text-center">
-          <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-            <i class="fas fa-certificate fa-2x text-primary"></i>
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-certificate fa-2x"></i>
           </div>
-          <h5>Certificates</h5>
-          <p class="text-muted">
-            Earn certificates of completion to showcase your skills
-          </p>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">Verified Certificates</h5>
+          <p style="color: #666; line-height: 1.6;">Earn certificates of completion to showcase your skills and achievements on your resume and LinkedIn profile.</p>
         </div>
       </div>
 
-      <div class="col-md-4">
-        <div class="text-center">
-          <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-3">
-            <i class="fas fa-users fa-2x text-primary"></i>
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-users fa-2x"></i>
           </div>
-          <h5>Expert Instructors</h5>
-          <p class="text-muted">
-            Learn from industry professionals with real-world experience
-          </p>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">Expert Instructors</h5>
+          <p style="color: #666; line-height: 1.6;">Learn from industry professionals with real-world experience and proven track records in their fields.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-video fa-2x"></i>
+          </div>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">Video Lessons</h5>
+          <p style="color: #666; line-height: 1.6;">High-quality video lessons with step-by-step instructions and practical examples for better understanding.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-project-diagram fa-2x"></i>
+          </div>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">Real Projects</h5>
+          <p style="color: #666; line-height: 1.6;">Build real-world projects that you can add to your portfolio and showcase to potential employers.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div style="text-align: center; padding: 30px;">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white;">
+            <i class="fas fa-headset fa-2x"></i>
+          </div>
+          <h5 style="font-weight: 700; margin-bottom: 15px;">24/7 Support</h5>
+          <p style="color: #666; line-height: 1.6;">Get help from our support team and community whenever you need it. Your success is our priority.</p>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CTA Section -->
-<section class="bg-primary text-white py-5">
-  <div class="container text-center">
-    <h2 class="mb-3">Ready to Start Learning?</h2>
-    <p class="lead mb-4">
-      Join thousands of students and transform your career today
-    </p>
-    {% if user.is_authenticated %}
-    <a href="{% url 'courses:course_list' %}" class="btn btn-light btn-lg">Browse Courses</a>
-    {% else %}
-    <a href="{% url 'users:register' %}" class="btn btn-light btn-lg">Get Started Now</a>
-    {% endif %}
+<!-- Testimonials Section -->
+<section style="padding: 80px 0; background-color: white;">
+  <div class="container">
+    <h2 style="font-size: 2.2rem; font-weight: 700; text-align: center; margin-bottom: 15px;">What People Say About Us</h2>
+    <p style="text-align: center; color: #666; margin-bottom: 50px; font-size: 1.1rem;">Join thousands of satisfied learners who have transformed their careers</p>
+
+    <div class="row g-4">
+      <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; padding: 30px;">
+          <div class="mb-3">
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+          </div>
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            "The courses are well-structured and easy to follow. The instructors are knowledgeable and the support team is always ready to help. Highly recommended!"
+          </p>
+          <div style="display: flex; align-items: center;">
+            <img src="https://via.placeholder.com/50x50?text=User1" alt="User" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+            <div>
+              <h6 style="margin: 0; font-weight: 700;">Sarah Johnson</h6>
+              <small style="color: #999;">Web Developer</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; padding: 30px;">
+          <div class="mb-3">
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+          </div>
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            "I was able to complete the entire course at my own pace. The practical projects were really helpful in understanding the concepts better."
+          </p>
+          <div style="display: flex; align-items: center;">
+            <img src="https://via.placeholder.com/50x50?text=User2" alt="User" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+            <div>
+              <h6 style="margin: 0; font-weight: 700;">Michael Chen</h6>
+              <small style="color: #999;">Data Scientist</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 mb-4">
+        <div class="card border-0 shadow-sm" style="border-radius: 12px; padding: 30px;">
+          <div class="mb-3">
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+            <i class="fas fa-star" style="color: #ffc107;"></i>
+          </div>
+          <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
+            "Best investment I made for my career! The certificate helped me land a better job. The knowledge I gained was absolutely invaluable."
+          </p>
+          <div style="display: flex; align-items: center;">
+            <img src="https://via.placeholder.com/50x50?text=User3" alt="User" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-right: 15px;">
+            <div>
+              <h6 style="margin: 0; font-weight: 700;">Emily Rodriguez</h6>
+              <small style="color: #999;">Full Stack Developer</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Become an Instructor Section -->
+<section style="padding: 80px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-5 mb-lg-0">
+        <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 20px; line-height: 1.2;">
+          Become an Instructor & Share Your Knowledge
+        </h2>
+        <p style="font-size: 1.1rem; opacity: 0.95; margin-bottom: 30px; line-height: 1.6;">
+          Share your expertise with thousands of students worldwide. Create engaging courses and inspire learners to achieve their goals.
+        </p>
+        <ul style="list-style: none; padding: 0; margin-bottom: 30px;">
+          <li style="margin-bottom: 15px; display: flex; align-items: center;">
+            <i class="fas fa-check-circle" style="margin-right: 15px; font-size: 1.2rem;"></i>
+            <span>Flexible schedule - Teach at your own pace</span>
+          </li>
+          <li style="margin-bottom: 15px; display: flex; align-items: center;">
+            <i class="fas fa-check-circle" style="margin-right: 15px; font-size: 1.2rem;"></i>
+            <span>Earn money - Competitive commission rates</span>
+          </li>
+          <li style="margin-bottom: 15px; display: flex; align-items: center;">
+            <i class="fas fa-check-circle" style="margin-right: 15px; font-size: 1.2rem;"></i>
+            <span>Global reach - Connect with students worldwide</span>
+          </li>
+        </ul>
+        <a href="#" class="btn btn-light btn-lg" style="padding: 12px 40px; font-weight: 600;">
+          Get Started as Instructor
+        </a>
+      </div>
+
+      <div class="col-lg-6">
+        <img src="https://via.placeholder.com/500x400?text=Teach+Online" alt="Teach" class="img-fluid rounded" style="filter: drop-shadow(0 20px 40px rgba(0,0,0,0.2));">
+      </div>
+    </div>
   </div>
 </section>
 

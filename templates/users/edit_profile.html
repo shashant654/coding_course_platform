@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container ">
+  <!-- Header -->
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <h1 class="mb-1">Edit Profile</h1>
+      <p class="text-muted">Update your account and personal information</p>
+    </div>
+  </div>
+
+  <!-- Edit Form -->
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Profile Picture Section -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="fas fa-image"></i> Profile Picture
+            </h5>
+          </div>
+          <div class="card-body text-center">
+            <!-- Current Picture -->
+            <div class="mb-4">
+              {% if user.profile_picture %}
+              <img
+                src="{{ user.profile_picture.url }}"
+                alt="{{ user.username }}"
+                class="img-fluid rounded-circle"
+                style="max-width: 150px; height: 150px; object-fit: cover"
+                id="profileImagePreview"
+              />
+              {% else %}
+              <div
+                class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                style="width: 150px; height: 150px"
+                id="profileImagePreview"
+              >
+                <i class="fas fa-user fa-5x text-muted"></i>
+              </div>
+              {% endif %}
+            </div>
+
+            <!-- Upload Input -->
+            <div class="mb-3">
+              <input
+                type="file"
+                class="form-control"
+                id="profilePicture"
+                name="profile_picture"
+                accept="image/*"
+              />
+              <small class="text-muted">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Basic Information -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="fas fa-user-circle"></i> Basic Information
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="firstName" class="form-label">First Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="firstName"
+                  name="first_name"
+                  value="{{ user.first_name }}"
+                />
+              </div>
+              <div class="col-md-6">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="lastName"
+                  name="last_name"
+                  value="{{ user.last_name }}"
+                />
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="email" class="form-label">Email Address</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  name="email"
+                  value="{{ user.email }}"
+                  readonly
+                />
+                <small class="text-muted">Email cannot be changed</small>
+              </div>
+              <div class="col-md-6">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input
+                  type="tel"
+                  class="form-control"
+                  id="phone"
+                  name="phone_number"
+                  value="{{ user.phone_number|default:'' }}"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Details -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="fas fa-briefcase"></i> Personal Details
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="profession" class="form-label">Profession</label>
+              <input
+                type="text"
+                class="form-control"
+                id="profession"
+                name="profession"
+                value="{% if user.profile %}{{ user.profile.profession }}{% endif %}"
+                placeholder="e.g., Software Developer, Student, etc."
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="bio" class="form-label">Bio</label>
+              <textarea
+                class="form-control"
+                id="bio"
+                name="bio"
+                rows="4"
+                placeholder="Tell us about yourself..."
+              >{% if user.profile %}{{ user.profile.bio }}{% endif %}</textarea>
+              <small class="text-muted">Max 500 characters</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="website" class="form-label">Website</label>
+              <input
+                type="url"
+                class="form-control"
+                id="website"
+                name="website"
+                value="{% if user.profile %}{{ user.profile.website }}{% endif %}"
+                placeholder="https://example.com"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Social Links -->
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-bottom">
+            <h5 class="mb-0">
+              <i class="fas fa-share-alt"></i> Social Links
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="facebook" class="form-label">
+                <i class="fab fa-facebook"></i> Facebook
+              </label>
+              <input
+                type="url"
+                class="form-control"
+                id="facebook"
+                name="facebook"
+                value="{% if user.profile %}{{ user.profile.facebook }}{% endif %}"
+                placeholder="https://facebook.com/username"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="twitter" class="form-label">
+                <i class="fab fa-twitter"></i> Twitter
+              </label>
+              <input
+                type="url"
+                class="form-control"
+                id="twitter"
+                name="twitter"
+                value="{% if user.profile %}{{ user.profile.twitter }}{% endif %}"
+                placeholder="https://twitter.com/username"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="linkedin" class="form-label">
+                <i class="fab fa-linkedin"></i> LinkedIn
+              </label>
+              <input
+                type="url"
+                class="form-control"
+                id="linkedin"
+                name="linkedin"
+                value="{% if user.profile %}{{ user.profile.linkedin }}{% endif %}"
+                placeholder="https://linkedin.com/in/username"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="github" class="form-label">
+                <i class="fab fa-github"></i> GitHub
+              </label>
+              <input
+                type="url"
+                class="form-control"
+                id="github"
+                name="github"
+                value="{% if user.profile %}{{ user.profile.github }}{% endif %}"
+                placeholder="https://github.com/username"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="row mb-5">
+          <div class="col-md-8 offset-md-2">
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+              <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-times"></i> Cancel
+              </a>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Preview profile picture before upload
+  document.getElementById('profilePicture').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        const preview = document.getElementById('profileImagePreview');
+        if (preview.tagName === 'IMG') {
+          preview.src = event.target.result;
+        } else {
+          preview.innerHTML = '<img src="' + event.target.result + '" class="img-fluid rounded-circle" style="max-width: 150px; height: 150px; object-fit: cover" />';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Validate file size
+  document.getElementById('profilePicture').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (file && file.size > maxSize) {
+      alert('File size must be less than 5MB');
+      e.target.value = '';
+    }
+  });
+</script>
+
+<style>
+  .card {
+    transition: all 0.3s ease;
+  }
+
+  .card-header {
+    background-color: #f8f9fa;
+  }
+
+  .form-control:focus,
+  .form-control:focus,
+  .form-select:focus {
+    border-color: #5624d0;
+    box-shadow: 0 0 0 0.2rem rgba(86, 36, 208, 0.25);
+  }
+</style>
+{% endblock %}

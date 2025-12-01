@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.db.models import Q, Count, Avg
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from .models import Course, Category, Section, Lecture
+
+from .models import Course, Category, Section, Lecture, CallbackRequest
 from enrollment.models import Enrollment, LectureProgress
 from reviews.models import Review
 
@@ -308,3 +309,43 @@ def manage_lectures(request, slug, section_id):
         'lectures': lectures,
     }
     return render(request, 'instructor/manage_lectures.html', context)
+
+
+def request_callback(request, slug):
+    """Handle callback request from course detail page"""
+    course = get_object_or_404(Course, slug=slug, is_published=True)
+    
+    if request.method == 'POST':
+        name = request.POST.get('callback_name', '').strip()
+        email = request.POST.get('callback_email', '').strip()
+        phone = request.POST.get('callback_phone', '').strip()
+        
+        # Validation
+        errors = []
+        if not name:
+            errors.append('Name is required.')
+        if not email:
+            errors.append('Email is required.')
+        if not phone:
+            errors.append('Phone number is required.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return redirect('courses:course_detail', slug=slug)
+        
+        try:
+            # Create callback request
+            CallbackRequest.objects.create(
+                course=course,
+                name=name,
+                email=email,
+                phone=phone,
+            )
+            messages.success(request, 'Thank you! We will call you within 24 hours.')
+            return redirect('courses:course_detail', slug=slug)
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+            return redirect('courses:course_detail', slug=slug)
+    
+    return redirect('courses:course_detail', slug=slug)

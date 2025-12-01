@@ -153,6 +153,160 @@
           {% endif %}
         </div>
       </div>
+
+      <!-- Invoice Action Buttons -->
+      <div class="mt-3">
+        <div class="d-grid gap-2">
+          <button id="previewInvoiceBtn" class="btn btn-outline-primary">
+            <i class="fas fa-eye"></i> Preview Invoice
+          </button>
+          <button id="downloadInvoiceBtn" class="btn btn-primary">
+            <i class="fas fa-file-pdf"></i> Download Invoice
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden invoice content for PDF generation -->
+<div id="invoiceContent" style="display: none;">
+  <div style="padding: 20px; font-family: Arial, sans-serif;">
+    <div style="text-align: center; margin-bottom: 30px;">
+      <h1 style="margin: 0; color: #0052cc;">CodeLearn</h1>
+      <p style="margin: 5px 0; color: #666;">Online Learning Platform</p>
+    </div>
+
+    <div style="border-bottom: 2px solid #0052cc; padding-bottom: 20px; margin-bottom: 20px;">
+      <h2 style="margin: 0 0 20px 0; color: #333;">INVOICE</h2>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <p style="margin: 5px 0;"><strong>Order Number:</strong> {{ order.order_number }}</p>
+          <p style="margin: 5px 0;"><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+          <p style="margin: 5px 0;"><strong>Payment Method:</strong> {{ order.payment_method|title }}</p>
+        </div>
+        <div style="text-align: right;">
+          <p style="margin: 5px 0;"><strong>Payment Status:</strong> 
+            {% if order.payment_status == 'completed' %}
+            Completed
+            {% endif %}
+          </p>
+          {% if order.transaction_id %}
+          <p style="margin: 5px 0;"><strong>Transaction ID:</strong> {{ order.transaction_id }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <h3 style="margin: 0 0 15px 0; color: #333;">BILL TO</h3>
+      <p style="margin: 5px 0;"><strong>{{ user.get_full_name }}</strong></p>
+      <p style="margin: 5px 0;">{{ user.email }}</p>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background-color: #f5f5f5; border-bottom: 2px solid #0052cc;">
+            <th style="padding: 12px; text-align: left; font-weight: bold; color: #333;">Course Name</th>
+            <th style="padding: 12px; text-align: right; font-weight: bold; color: #333;">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order_items %}
+          <tr style="border-bottom: 1px solid #eee;">
+            <td style="padding: 12px; color: #666;">{{ item.course.title }}</td>
+            <td style="padding: 12px; text-align: right; color: #666;">${{ item.price }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-left: auto; width: 300px;">
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd;">
+        <span>Subtotal:</span>
+        <span>${{ order.total_amount }}</span>
+      </div>
+      {% if order.discount_amount > 0 %}
+      <div style="display: flex; justify-content: space-between; padding: 10px 0; color: #28a745;">
+        <span>Discount:</span>
+        <span>-${{ order.discount_amount }}</span>
+      </div>
+      {% endif %}
+      <div style="display: flex; justify-content: space-between; padding: 15px 0; border-top: 2px solid #0052cc; font-weight: bold; font-size: 18px; color: #0052cc;">
+        <span>Total Paid:</span>
+        <span>${{ order.final_amount }}</span>
+      </div>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; color: #999; font-size: 12px;">
+      <p style="margin: 5px 0;">Thank you for your purchase!</p>
+      <p style="margin: 5px 0;">For support, please contact us at support@codelearn.com</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+  document.getElementById('previewInvoiceBtn').addEventListener('click', function() {
+    const invoiceContent = document.getElementById('invoiceContent').innerHTML;
+    const previewModal = new bootstrap.Modal(document.getElementById('invoicePreviewModal'));
+    document.getElementById('invoicePreviewContent').innerHTML = invoiceContent;
+    previewModal.show();
+  });
+
+  document.getElementById('downloadInvoiceBtn').addEventListener('click', function() {
+    const invoiceContent = document.getElementById('invoiceContent').innerHTML;
+    
+    const element = document.createElement('div');
+    element.innerHTML = invoiceContent;
+    
+    const opt = {
+      margin: 10,
+      filename: 'invoice-{{ order.order_number }}.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    html2pdf().set(opt).from(element).save();
+  });
+
+  // Print functionality for preview
+  document.getElementById('printInvoiceBtn').addEventListener('click', function() {
+    const printWindow = window.open('', '', 'height=600,width=800');
+    const invoiceContent = document.getElementById('invoiceContent').innerHTML;
+    printWindow.document.write('<html><head><title>Invoice - {{ order.order_number }}</title>');
+    printWindow.document.write('<style>body { font-family: Arial, sans-serif; margin: 20px; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(invoiceContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+  });
+</script>
+
+<!-- Invoice Preview Modal -->
+<div class="modal fade" id="invoicePreviewModal" tabindex="-1" aria-labelledby="invoicePreviewLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="invoicePreviewLabel">Invoice Preview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div id="invoicePreviewContent"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="printInvoiceBtn" class="btn btn-info">
+          <i class="fas fa-print"></i> Print
+        </button>
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="document.getElementById('downloadInvoiceBtn').click()">
+          <i class="fas fa-file-pdf"></i> Download
+        </button>
+      </div>
     </div>
   </div>
 </div>

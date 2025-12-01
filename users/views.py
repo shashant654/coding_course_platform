@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from .models import User
+from .models import User, UserProfile
 from .emails import send_welcome_email
 import re
 
@@ -144,11 +144,126 @@ def profile(request):
 @login_required(login_url='users:login')
 def edit_profile(request):
     """Edit user profile"""
-    if request.method == 'POST':
-        # TODO: Implement profile update logic
-        pass
+    user = request.user
     
-    return render(request, 'users/edit_profile.html')
+    # Get or create UserProfile
+    try:
+        user_profile = user.profile
+    except UserProfile.DoesNotExist:
+        user_profile = UserProfile.objects.create(user=user)
+    
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        profile_picture = request.FILES.get('profile_picture')
+        
+        # Profile fields
+        profession = request.POST.get('profession', '').strip()
+        bio = request.POST.get('bio', '').strip()
+        website = request.POST.get('website', '').strip()
+        facebook = request.POST.get('facebook', '').strip()
+        twitter = request.POST.get('twitter', '').strip()
+        linkedin = request.POST.get('linkedin', '').strip()
+        github = request.POST.get('github', '').strip()
+        
+        # Validation errors
+        errors = []
+        
+        # Basic validation
+        if not first_name:
+            errors.append('First name is required.')
+        if not last_name:
+            errors.append('Last name is required.')
+        
+        # Bio length validation
+        if len(bio) > 500:
+            errors.append('Bio must not exceed 500 characters.')
+        
+        # URL validation for social links and website
+        def validate_url(url, field_name):
+            if url and not (url.startswith('http://') or url.startswith('https://')):
+                return f'{field_name} must start with http:// or https://'
+            return None
+        
+        url_error = validate_url(website, 'Website')
+        if url_error:
+            errors.append(url_error)
+        
+        url_error = validate_url(facebook, 'Facebook')
+        if url_error:
+            errors.append(url_error)
+        
+        url_error = validate_url(twitter, 'Twitter')
+        if url_error:
+            errors.append(url_error)
+        
+        url_error = validate_url(linkedin, 'LinkedIn')
+        if url_error:
+            errors.append(url_error)
+        
+        url_error = validate_url(github, 'GitHub')
+        if url_error:
+            errors.append(url_error)
+        
+        # Validate profile picture if provided
+        if profile_picture:
+            max_size = 5 * 1024 * 1024  # 5MB
+            if profile_picture.size > max_size:
+                errors.append('Profile picture must be less than 5MB.')
+            
+            # Check file extension
+            allowed_extensions = ['jpg', 'jpeg', 'png', 'gif']
+            file_extension = profile_picture.name.split('.')[-1].lower()
+            if file_extension not in allowed_extensions:
+                errors.append('Profile picture must be in JPG, PNG, or GIF format.')
+        
+        # If there are errors, display them
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'users/edit_profile.html', {
+                'user': user,
+                'user_profile': user_profile,
+            })
+        
+        try:
+            # Update User model
+            user.first_name = first_name
+            user.last_name = last_name
+            user.phone_number = phone_number
+            
+            # Update profile picture if provided
+            if profile_picture:
+                user.profile_picture = profile_picture
+            
+            user.save()
+            
+            # Update UserProfile model
+            user_profile.profession = profession
+            user_profile.bio = bio
+            user_profile.website = website
+            user_profile.facebook = facebook
+            user_profile.twitter = twitter
+            user_profile.linkedin = linkedin
+            user_profile.github = github
+            user_profile.save()
+            
+            messages.success(request, 'Profile updated successfully!')
+            return redirect('users:profile')
+            
+        except Exception as e:
+            messages.error(request, f'Error updating profile: {str(e)}')
+            return render(request, 'users/edit_profile.html', {
+                'user': user,
+                'user_profile': user_profile,
+            })
+    
+    return render(request, 'users/edit_profile.html', {
+        'user': user,
+        'user_profile': user_profile,
+    })
 
 
 @login_required(login_url='users:login')
