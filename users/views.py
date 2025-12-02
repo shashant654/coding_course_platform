@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from .models import User, UserProfile
-from .emails import send_welcome_email
+from .emails import send_welcome_email, send_2fa_verification_email
 import re
 
 
@@ -18,9 +18,10 @@ def user_login(request):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            login(request, user)
-            messages.success(request, 'Login successful!')
-            return redirect('home')
+            # Store user ID in session for 2FA setup/verification
+            request.session['pending_2fa_user_id'] = user.id
+            messages.success(request, 'Login successful! Please set up 2FA.')
+            return redirect('users:setup_2fa_prompt')
         else:
             messages.error(request, 'Invalid username or password.')
     
@@ -306,3 +307,247 @@ def instructor_analytics(request):
         return redirect('home')
     
     return render(request, 'users/instructor/analytics.html')
+
+
+def setup_2fa_prompt(request):
+    """Display 2FA setup prompt"""
+    from .models import TwoFactorAuth
+    
+    pending_user_id = request.session.get('pending_2fa_user_id')
+    
+    # If coming from login with pending_2fa_user_id
+    if pending_user_id:
+        try:
+            pending_user = User.objects.get(id=pending_user_id)
+            
+            # If user already has 2FA enabled, redirect to verify page
+            if pending_user.two_factor_enabled:
+                return redirect('users:verify_2fa')
+            else:
+                # Show setup prompt for new 2FA setup
+                return render(request, 'users/setup_2fa_prompt.html', {
+                    'is_setup': True,
+                    'message': 'Please set up Two-Factor Authentication for your account security.'
+                })
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid session.')
+            return redirect('users:login')
+    
+    # If user is authenticated, show setup prompt
+    if request.user.is_authenticated:
+        return render(request, 'users/setup_2fa_prompt.html')
+    
+    # Not authenticated and no pending session
+    messages.error(request, 'Please log in first.')
+    return redirect('users:login')
+
+
+def enable_2fa(request):
+    """Enable 2FA for user"""
+    from .models import TwoFactorAuth
+    
+    pending_user_id = request.session.get('pending_2fa_user_id')
+    
+    if not pending_user_id and not request.user.is_authenticated:
+        messages.error(request, 'Please log in first.')
+        return redirect('users:login')
+    
+    # Get user from session or authenticated user
+    if pending_user_id:
+        try:
+            user = User.objects.get(id=pending_user_id)
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid session.')
+            return redirect('users:login')
+    else:
+        user = request.user
+    
+    if request.method == 'POST':
+        try:
+            # Create or get TwoFactorAuth instance
+            two_factor, created = TwoFactorAuth.objects.get_or_create(user=user)
+            
+            # Generate new verification code
+            verification_code = two_factor.create_new_code()
+            
+            # Send verification code via email
+            send_2fa_verification_email(user, verification_code)
+            
+            messages.success(request, 'A verification code has been sent to your email.')
+            return redirect('users:verify_2fa_setup')
+        except Exception as e:
+            messages.error(request, f'Error enabling 2FA: {str(e)}')
+    
+    return redirect('users:setup_2fa_prompt')
+
+
+def setup_2fa_skip(request):
+    """Skip 2FA setup and proceed to login/home"""
+    pending_user_id = request.session.get('pending_2fa_user_id')
+    
+    if pending_user_id:
+        try:
+            user = User.objects.get(id=pending_user_id)
+            # Log in the user
+            login(request, user)
+            del request.session['pending_2fa_user_id']
+            messages.info(request, 'You can enable 2FA anytime from your profile settings.')
+            return redirect('home')
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid session.')
+            return redirect('users:login')
+    elif request.user.is_authenticated:
+        # If already authenticated, just redirect to home
+        messages.info(request, 'You can enable 2FA anytime from your profile settings.')
+        return redirect('home')
+    else:
+        messages.error(request, 'Please log in first.')
+        return redirect('users:login')
+
+
+def verify_2fa_setup(request):
+    """Verify 2FA setup code"""
+    from .models import TwoFactorAuth
+    
+    pending_user_id = request.session.get('pending_2fa_user_id')
+    
+    if not pending_user_id and not request.user.is_authenticated:
+        messages.error(request, 'Please log in first.')
+        return redirect('users:login')
+    
+    # Get user from session or authenticated user
+    if pending_user_id:
+        try:
+            user = User.objects.get(id=pending_user_id)
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid session.')
+            return redirect('users:login')
+    else:
+        user = request.user
+    
+    try:
+        two_factor = user.two_factor
+    except TwoFactorAuth.DoesNotExist:
+        messages.error(request, '2FA setup not found. Please start over.')
+        return redirect('users:setup_2fa_prompt')
+    
+    if request.method == 'POST':
+        verification_code = request.POST.get('verification_code', '').strip()
+        
+        if not verification_code:
+            messages.error(request, 'Verification code is required.')
+            return render(request, 'users/verify_2fa_setup.html')
+        
+        is_valid, message = two_factor.verify_code(verification_code)
+        
+        if is_valid:
+            # Enable 2FA for user
+            user.two_factor_enabled = True
+            user.save()
+            
+            # If this was from login flow, log in the user
+            if pending_user_id:
+                login(request, user)
+                del request.session['pending_2fa_user_id']
+                messages.success(request, '2FA has been successfully enabled! You are now logged in.')
+                return redirect('home')
+            else:
+                messages.success(request, '2FA has been successfully enabled!')
+                return redirect('users:profile')
+        else:
+            messages.error(request, message)
+    
+    return render(request, 'users/verify_2fa_setup.html')
+
+
+def verify_2fa(request):
+    """Verify 2FA code during login"""
+    from .models import TwoFactorAuth
+    
+    if not request.session.get('pending_2fa_user_id'):
+        messages.error(request, 'Please log in first.')
+        return redirect('users:login')
+    
+    if request.method == 'POST':
+        verification_code = request.POST.get('verification_code', '').strip()
+        
+        if not verification_code:
+            messages.error(request, 'Verification code is required.')
+            return render(request, 'users/verify_2fa.html')
+        
+        try:
+            user_id = request.session.get('pending_2fa_user_id')
+            user = User.objects.get(id=user_id)
+            two_factor = user.two_factor
+            
+            is_valid, message = two_factor.verify_code(verification_code)
+            
+            if is_valid:
+                # Complete login
+                login(request, user)
+                del request.session['pending_2fa_user_id']
+                messages.success(request, '2FA verification successful!')
+                return redirect('home')
+            else:
+                messages.error(request, message)
+        except (User.DoesNotExist, TwoFactorAuth.DoesNotExist):
+            messages.error(request, 'Invalid 2FA session.')
+            return redirect('users:login')
+    
+    return render(request, 'users/verify_2fa.html')
+
+
+def resend_2fa_code(request):
+    """Resend 2FA code"""
+    from .models import TwoFactorAuth
+    
+    pending_user_id = request.session.get('pending_2fa_user_id')
+    
+    if not pending_user_id and not request.user.is_authenticated:
+        messages.error(request, 'Please log in first.')
+        return redirect('users:login')
+    
+    # Get user from session or authenticated user
+    if pending_user_id:
+        try:
+            user = User.objects.get(id=pending_user_id)
+        except User.DoesNotExist:
+            messages.error(request, 'Invalid session.')
+            return redirect('users:login')
+    else:
+        user = request.user
+    
+    try:
+        two_factor = user.two_factor
+        verification_code = two_factor.create_new_code()
+        
+        # Send verification code via email
+        send_2fa_verification_email(user, verification_code)
+        
+        messages.success(request, 'A new verification code has been sent to your email.')
+    except TwoFactorAuth.DoesNotExist:
+        messages.error(request, '2FA is not set up for your account.')
+    except Exception as e:
+        messages.error(request, f'Error resending code: {str(e)}')
+    
+    return redirect('users:setup_2fa_prompt')
+
+
+@login_required(login_url='users:login')
+def disable_2fa(request):
+    """Disable 2FA for user"""
+    user = request.user
+    
+    if not user.two_factor_enabled:
+        messages.warning(request, '2FA is not enabled for your account.')
+        return redirect('users:profile')
+    
+    if request.method == 'POST':
+        # Disable 2FA
+        user.two_factor_enabled = False
+        user.save()
+        
+        messages.success(request, '2FA has been successfully disabled!')
+        return redirect('users:profile')
+    
+    return render(request, 'users/disable_2fa_confirm.html')

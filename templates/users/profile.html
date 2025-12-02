@@ -82,6 +82,54 @@
       </div>
     </div>
 
+     <!-- Right Column - Detailed Profile Info -->
+    <div class="col-md-8">
+      <!-- Two-Factor Authentication Section -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-bottom">
+          <h5 class="mb-0">
+            <i class="fas fa-shield-alt"></i> Two-Factor Authentication
+          </h5>
+        </div>
+        <div class="card-body">
+          {% if user.two_factor_enabled %}
+            <!-- 2FA Enabled -->
+            <div class="alert alert-success">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle fa-2x me-3"></i>
+                <div class="flex-grow-1">
+                  <h6 class="alert-heading mb-1">2FA is Enabled</h6>
+                  <p class="mb-0 small">Your account is protected with Two-Factor Authentication</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-muted">
+              You will be asked to enter a verification code sent to your email each time you login.
+            </p>
+            <a href="{% url 'users:disable_2fa' %}" class="btn btn-outline-danger">
+              <i class="fas fa-times-circle"></i> Disable 2FA
+            </a>
+          {% else %}
+            <!-- 2FA Disabled -->
+            <div class="alert alert-warning">
+              <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                <div class="flex-grow-1">
+                  <h6 class="alert-heading mb-1">2FA is Disabled</h6>
+                  <p class="mb-0 small">Add an extra layer of security to your account</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-muted mb-3">
+              Two-Factor Authentication adds an extra layer of security to your account. When enabled, you'll need to enter a verification code sent to your email each time you login.
+            </p>
+            <a href="{% url 'users:enable_2fa' %}" class="btn btn-success">
+              <i class="fas fa-shield-alt"></i> Enable 2FA
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
     <!-- Right Column - Detailed Profile Info -->
     <div class="col-md-8">
       <!-- Contact Information -->

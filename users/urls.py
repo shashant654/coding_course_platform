@@ -9,6 +9,15 @@ urlpatterns = [
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
     path('register/', views.register, name='register'),
+
+    # Two-Factor Authentication URLs
+    path('2fa/setup-prompt/', views.setup_2fa_prompt, name='setup_2fa_prompt'),
+    path('2fa/enable/', views.enable_2fa, name='enable_2fa'),
+    path('2fa/skip/', views.setup_2fa_skip, name='setup_2fa_skip'),
+    path('2fa/verify-setup/', views.verify_2fa_setup, name='verify_2fa_setup'),
+    path('2fa/verify/', views.verify_2fa, name='verify_2fa'),
+    path('2fa/resend/', views.resend_2fa_code, name='resend_2fa_code'),
+    path('2fa/disable/', views.disable_2fa, name='disable_2fa'),
     
     # Profile URLs
     path('profile/', views.profile, name='profile'),

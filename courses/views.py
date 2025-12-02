@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 
 from .models import Course, Category, Section, Lecture, CallbackRequest
+from .emails import send_callback_request_email
 from enrollment.models import Enrollment, LectureProgress
 from reviews.models import Review
 
@@ -335,16 +336,32 @@ def request_callback(request, slug):
             return redirect('courses:course_detail', slug=slug)
         
         try:
-            # Create callback request
-            CallbackRequest.objects.create(
+            # Create callback request and save to database
+            callback = CallbackRequest.objects.create(
                 course=course,
                 name=name,
                 email=email,
                 phone=phone,
             )
+            
+            print(f"\n{'='*60}")
+            print(f"✅ CALLBACK REQUEST CREATED IN DATABASE")
+            print(f"ID: {callback.id}")
+            print(f"Name: {callback.name}")
+            print(f"Email: {callback.email}")
+            print(f"Phone: {callback.phone}")
+            print(f"Course: {callback.course.title}")
+            print(f"Status: {callback.status}")
+            print(f"Created At: {callback.created_at}")
+            print(f"{'='*60}\n")
+            
+            # Send admin notification email
+            send_callback_request_email(callback)
+            
             messages.success(request, 'Thank you! We will call you within 24 hours.')
             return redirect('courses:course_detail', slug=slug)
         except Exception as e:
+            print(f"\n❌ Error creating callback request: {str(e)}")
             messages.error(request, f'Error: {str(e)}')
             return redirect('courses:course_detail', slug=slug)
     

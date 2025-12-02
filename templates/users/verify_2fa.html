@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}2FA Verification - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-lg border-0">
+        <!-- Header -->
+        <div class="card-header bg-primary text-white text-center py-4">
+          <i class="fas fa-lock fa-3x mb-3"></i>
+          <h3 class="mb-0">Two-Factor Authentication</h3>
+        </div>
+        
+        <div class="card-body p-5">
+          <h4 class="text-center mb-4">Verify Your Account</h4>
+          
+          <p class="text-muted text-center mb-4">
+            We've sent a 6-digit verification code to your registered email address. Enter it below to complete your login.
+          </p>
+          
+          <!-- Verification Code Form -->
+          <form method="post" action="{% url 'users:verify_2fa' %}">
+            {% csrf_token %}
+            
+            <div class="mb-4">
+              <label for="verification_code" class="form-label">
+                <strong>Verification Code</strong>
+              </label>
+              <input 
+                type="text" 
+                class="form-control form-control-lg text-center" 
+                id="verification_code" 
+                name="verification_code" 
+                placeholder="000000"
+                maxlength="6"
+                inputmode="numeric"
+                pattern="[0-9]{6}"
+                required
+                autofocus
+                style="font-size: 24px; letter-spacing: 8px; font-weight: bold;"
+              />
+              <small class="text-muted d-block mt-2">
+                <i class="fas fa-info-circle"></i> Enter the 6-digit code without spaces
+              </small>
+            </div>
+            
+            <!-- Info Box -->
+            <div class="alert alert-info mb-4">
+              <h6 class="alert-heading">
+                <i class="fas fa-envelope"></i> Check Your Email
+              </h6>
+              <p class="mb-0">
+                The verification code has been sent to your email. Check your spam folder if you don't see it.
+              </p>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="d-grid gap-2 mb-3">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Verify & Login
+              </button>
+            </div>
+          </form>
+          
+          <!-- Resend Code Link -->
+          <p class="text-center">
+            <small class="text-muted">Didn't receive the code?</small><br>
+            <a href="{% url 'users:resend_2fa_code' %}" class="text-decoration-none">
+              <i class="fas fa-redo"></i> Resend Code
+            </a>
+          </p>
+          
+          <!-- Divider -->
+          <hr class="my-4">
+          
+          <!-- Security Notice -->
+          <div class="alert alert-warning">
+            <h6 class="alert-heading">
+              <i class="fas fa-shield-alt"></i> Security Notice
+            </h6>
+            <ul class="mb-0 small">
+              <li>Never share your verification code with anyone</li>
+              <li>CodeLearn staff will never ask for your code</li>
+              <li>This code will expire in 10 minutes</li>
+            </ul>
+          </div>
+          
+          <!-- Back Link -->
+          <p class="text-center mt-4">
+            <a href="{% url 'users:login' %}" class="text-decoration-none text-muted">
+              <i class="fas fa-arrow-left"></i> Back to Login
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-format input to numbers only
+  document.getElementById('verification_code').addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+  });
+  
+  // Auto-submit when 6 digits are entered (optional)
+  document.getElementById('verification_code').addEventListener('input', function(e) {
+    if (this.value.length === 6) {
+      // Uncomment the line below to auto-submit
+      // this.closest('form').submit();
+    }
+  });
+</script>
+{% endblock %}

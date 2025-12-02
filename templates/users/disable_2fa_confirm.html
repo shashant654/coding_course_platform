@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Disable 2FA - CodeLearn{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow border-0">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-shield-alt"></i> Disable Two-Factor Authentication
+          </h5>
+        </div>
+        <div class="card-body p-4">
+          <div class="alert alert-danger">
+            <h6 class="alert-heading">
+              <i class="fas fa-exclamation-triangle"></i> Warning
+            </h6>
+            <p class="mb-0">
+              Disabling Two-Factor Authentication will make your account less secure. You will only need your password to login.
+            </p>
+          </div>
+          
+          <p class="mb-4">Are you sure you want to disable Two-Factor Authentication for your account?</p>
+          
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-danger">
+                <i class="fas fa-times"></i> Yes, Disable 2FA
+              </button>
+              <a href="{% url 'users:profile' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Cancel
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
