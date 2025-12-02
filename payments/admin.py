@@ -406,8 +406,8 @@ class PaymentTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
-    list_display = ['invoice_number', 'get_order_user', 'total_amount', 'invoice_date', 'order__payment_status']
-    list_filter = ['invoice_date', 'order__payment_status']
+    list_display = ['invoice_number', 'get_order_user', 'total_amount', 'invoice_date', 'order_payment_status']
+    list_filter = ['invoice_date', 'order_payment_status']
     search_fields = ['invoice_number', 'order__user__username', 'order__user__email', 'order__order_number']
     readonly_fields = ['invoice_number', 'invoice_date', 'created_at', 'updated_at']
     
