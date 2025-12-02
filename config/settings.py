@@ -16,7 +16,14 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-))-$t3&_5-d_t^g8-qyj9
 
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1','coding-course-platform.onrender.com', 'https://coding-course-platform.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'coding-course-platform.onrender.com']
+
+# CSRF Configuration
+CSRF_TRUSTED_ORIGINS = [
+    'https://coding-course-platform.onrender.com',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
 
 
 # Application definition
